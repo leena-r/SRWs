@@ -347,17 +347,246 @@ mean(ssm_mpm_NZ_2020$g)
 #try NZ 2020 tracks with Solene code
 
 
+# load raw data - NZ 2020 cohort
+
+Ptt203571_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607', '203571', "203571-Locations.csv"))
+Ptt203572_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607','203572', "203572-Locations.csv"))
+Ptt203573_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607','203573', "203573-Locations.csv"))
+Ptt203574_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607','203574', "203574-Locations.csv"))
+Ptt203575_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607','203575', "203575-Locations.csv"))
+Ptt205015_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607','205015', "205015-Locations.csv"))
+
+
+all_ptt_2020 <- bind_rows(Ptt203571_raw, Ptt203572_raw, Ptt203573_raw, Ptt203574_raw, Ptt203575_raw, Ptt205015_raw)
+
+#Only keep desired columns
+all_ptt_2020 <- all_ptt_2020 %>% 
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+# filter z positions
+all_ptt_2020 <- all_ptt_2020 %>% filter(Quality != 'Z')
+
+# transform Date into POSIX format
+all_ptt_2020 <- all_ptt_2020 %>% 
+  mutate(Date = as.POSIXct(Date, format = "%H:%M:%S %d-%b-%Y"),
+         month = as.numeric(strftime(Date, format = "%m")))
+
+# prefilter positions with the speed filter (see Reisinger et al. 2021 who did that before actually fitting the ssm)
+# vmax in meters / s
+all_ptt_2020 <- ddply(all_ptt_2020, ~DeployID, function(d){
+  d$argosfilter <- sdafilter(lat = d$Latitude, 
+                             lon = d$Longitude, 
+                             lc = d$Quality, 
+                             dtime = d$Date, vmax = 5)
+  return(d)
+})
+all_ptt_2020 <- all_ptt_2020 %>% 
+  filter(argosfilter != "removed") %>% 
+  dplyr::select(-argosfilter)
+
+# who is left? how many positions?
+all_ptt_2020 %>% 
+  group_by(DeployID) %>% 
+  dplyr::summarize(nb_locations = n())
+
+
+
+####################
+#Segmentate when transmissions interrupted
+#Assess mean time step between locations
+
+timelaps_df <- ddply(all_ptt_2020, ~DeployID, function(d){
+  d$timelaps_hours <- NA
+  for (i in 2:nrow(d)){
+    d$timelaps_hours[i] = difftime(d$Date[i], d$Date[i-1], units = "hours")}
+  return(d)
+})
+
+# mean time step between locations (in hours)
+a <- aggregate(timelaps_hours~DeployID, timelaps_df, mean)
+a
+
+mean(a$timelaps_hours)
+
+
+ggplot(timelaps_df, aes(timelaps_hours)) + 
+  geom_histogram(binwidth = 5, col ="white", na.rm = T) + 
+  theme_bw() + 
+  facet_wrap(~DeployID, scales = "free") +
+  xlab("Time laps between successive locations (in hours)")
+
+
+
+### some Solene code I don't have
+# source("Fun_TrackInterruption_SRW.R")
+# 
+# # need a time column to run
+# raw_tracks$time <- raw_tracks$Date
+# # run the custom function to split tarcks interrupted for more than 144 hours = 6 days
+# raw_tracks <- Fun_TrackInterruption(dataframe = raw_tracks, hours_gap = 144, id = "DeployID")
+
+# # set first timelaps of each segment to NA
+# raw_tracks <- ddply(raw_tracks, ~segmentid, function(d){
+#   d$timelaps[1] <- NA
+#   return(d)
+# })
+
+
+
+##XUELEI:
+trackseg_argos_df <- ddply(timelaps_df, ~DeployID, function(d){
+  ind <- which(d$timelaps_hours > 24)
+  d$mark <- 0
+  d$mark[ind] <- 1
+  d$track_seg <- cumsum(d$mark)
+  return(d)
+})
+
+# Now create a new id based on track segment
+trackseg_argos_df$track_id <- paste(trackseg_argos_df$Ptt, "-", trackseg_argos_df$track_seg, sep="")
+
+raw_tracks <- trackseg_argos_df %>% 
+  dplyr::rename(segmentid = track_id)
+
+#back to SOlene code
+# print number of locations per segments
+raw_tracks %>% 
+  group_by(segmentid) %>% 
+  dplyr::summarize(nb_locations = n()) %>% 
+  print(n = Inf)
+
+
+
+# remove segments with less than 15 locations - Xuelei used 10
+toremove <- raw_tracks %>% 
+  group_by(segmentid) %>% 
+  dplyr::summarize(nb_locations = n()) %>% 
+  filter(nb_locations <= 10)
+
+raw_tracks <- raw_tracks %>% filter(!(segmentid %in% toremove$segmentid))
+
+# print number of locations per segments
+raw_tracks %>% 
+  group_by(segmentid) %>% 
+  dplyr::summarize(nb_locations = n()) %>% 
+  print(n = Inf)
+
+
+# now what's the average time between locations?
+a <- aggregate(timelaps_hours~segmentid, raw_tracks, mean)
+a
+#segment 203573-1 very high 53h
+
+mean(a$timelaps_hours)
+
+# what's the maximum time between locations?
+a <- aggregate(timelaps_hours~segmentid, raw_tracks, max)
+a
+
+####################
+#SSM
+
+raw_tracks$time <- raw_tracks$Date
+
+data_ssm <- raw_tracks %>% 
+  dplyr::select(segmentid, time, Quality, Longitude, Latitude, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`) %>% 
+  dplyr::rename(id = segmentid, date = time, lc = Quality, lon = Longitude, lat = Latitude, smaj = `Error Semi-major axis`, smin = `Error Semi-minor axis`, eor = `Error Ellipse orientation`)
+data_ssm$geometry <- NULL
+
+str(data_ssm)
+
+
+data_ssm$smaj <- as.integer(data_ssm$smaj)
+data_ssm$smin <- as.integer(data_ssm$smin)
+data_ssm$eor <- as.integer(data_ssm$eor)
+
+str(data_ssm)
+
+
+####################
+#Fit model with two different time steps
+
+#THIS DOESN'T WORK
+nz_fit_ssm <- tibble(time_step = c(3, 6)) %>% # create a tibble with the two time step conditions in one column
+  group_by(time_step) %>% # 
+  nest() %>% 
+  mutate(data = list(data_ssm, data_ssm), # store the same dataframe in the two rows
+         fit = map2(time_step, data, function(x, y){
+           fit_ssm(y,
+                   spdf = F, # we already run the filter so no need to do again
+                   pf = F,
+                   model = "rw",
+                   min.dt = 48,
+                   time.step = x,
+                   control = ssm_control(verbose = 0),
+                   map = list(psi = factor(NA)))}))
+
+
+#Xuelei:
+fit_ssm_6_22 <- fit_ssm(ssm_22,vmax = 25,model="crw",time.step = 6,control = ssm_control(verbose=0))
+
+
+nz_fit_ssm <- fit_ssm(data_ssm,
+                      spdf = F, # we already run the filter so no need to do again
+                      pf = F,
+                      model = "crw",
+                      min.dt = 48,
+                      time.step = 6,
+                      control = ssm_control(verbose = 0),
+                      map = list(psi = factor(NA)))
+
+
+#Xuelei
+nz_fit_ssm_df <- grab(x=nz_fit_ssm,what = "p")
+
+
+
+####################
+#ARS
+#Assess movement persistence along tracks
+
+nz_fit_ssm <- nz_fit_ssm %>% 
+  mutate(fmp = map(nz_fit_ssm, function(a){
+    fit_mpm(a, what = "predicted", model = "mpm", control = mpm_control(verbose = 0))
+  }))
+
+
+#xuelei
+fmp <- fit_mpm(nz_fit_ssm,model="mpm",control = mpm_control(verbose = 0))
+
+fmp_df <- grab(x=fmp,what = "f") 
+
+ssm_fmp <- aniMotum::join(nz_fit_ssm,fmp,what.ssm="predicted",as_sf=FALSE)%>%
+  as.data.frame()
+
+plot(fmp, type = 3, pages = 1, ncol = 2)
+
+
+ggplot(ssm_fmp, aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(70,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+summary(ssm_fmp$g)
+####################
 
 
 
 
 
+####################
 
 
 
 
 
-
+####################
 
 
 
