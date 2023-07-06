@@ -38,11 +38,14 @@ world_map <- map_data("world")
 
 sc <- scale_colour_gradientn(colours = viridis(100), limits=c(0,1))
 
-################################
+
+################################################################
 
 
-# load raw data - NZ 2020 cohort
+#combine NZ data into one master file
+#note that couple of the 2022 cohort are still transmitting
 
+##NZ 2020
 Ptt203571_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607', '203571', "203571-Locations.csv"))
 Ptt203572_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607','203572', "203572-Locations.csv"))
 Ptt203573_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607','203573', "203573-Locations.csv"))
@@ -64,12 +67,463 @@ all_ptt_2020 <- all_ptt_2020 %>%
   select(-Date) %>%
   mutate(Date = as_date(DateTime_UTC)) 
 
-#Add extra column for month
-all_ptt_2020 <- all_ptt_2020 %>% 
-  mutate(Month = month(DateTime_UTC))
 all_ptt_2020$cohort <- 2020
 
 
+
+##NZ 2021
+Ptt46633_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','46633', "46633-Locations.csv"))
+Ptt46635_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','46635', "46635-Locations.csv"))
+Ptt46950_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','46950', "46950-Locations.csv"))
+Ptt46955_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','46955', "46955-Locations.csv"))
+Ptt212499_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','212499', "212499-Locations.csv"))
+Ptt212500_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','212500', "212500-Locations.csv"))
+Ptt215258_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','215258', "215258-Locations.csv"))
+Ptt215259_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','215259', "215259-Locations.csv"))
+Ptt215261_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','215261', "215261-Locations.csv"))
+Ptt215262_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','215262', "215262-Locations.csv"))
+Ptt215263_raw <- read_csv(here::here('tag data', 'NZ', '2021', 'datapull 20230607','215263', "215263-Locations.csv"))
+
+all_ptt_2021 <- bind_rows(Ptt46633_raw, Ptt46635_raw, Ptt46950_raw, Ptt46955_raw, Ptt212499_raw,
+                     Ptt212500_raw, Ptt215258_raw, Ptt215259_raw, Ptt215261_raw, Ptt215262_raw, Ptt215263_raw)
+
+
+#Only keep desired columns
+all_ptt_2021 <- all_ptt_2021 %>% 
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2021 <- all_ptt_2021 %>% 
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC)) 
+
+all_ptt_2021$cohort <- 2021
+
+
+
+##NZ 2022  -- 3 still transmitting, as of July 2023
+Ptt197853_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230607', '197853', "197853-Locations.csv"))
+Ptt208742_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230607', '208742', "208742-Locations.csv"))
+Ptt235399_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230607', '235399', "235399-Locations.csv"))
+Ptt235400_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230607', '235400', "235400-Locations.csv"))
+Ptt235401_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230607', '235401', "235401-Locations.csv"))
+Ptt235402_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230607', '235402', "235402-Locations.csv"))
+Ptt235403_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230607', '235403', "235403-Locations.csv"))
+Ptt235404_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230607', '235404', "235404-Locations.csv"))
+
+
+all_ptt_2022 <- bind_rows(Ptt197853_raw, Ptt208742_raw, Ptt235399_raw, Ptt235400_raw, 
+                     Ptt235401_raw, Ptt235402_raw, Ptt235403_raw, Ptt235404_raw)
+
+
+
+#Only keep desired columns
+all_ptt_2022 <- all_ptt_2022 %>% 
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2022 <- all_ptt_2022 %>% 
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC)) 
+
+all_ptt_2022$cohort <- 2022
+
+
+
+raw_argos_df <- rbind(all_ptt_2020,all_ptt_2021,all_ptt_2022)
+
+
+#safe combined NZ SRW data file - note that 3 2022 tags still going
+#write_rds(raw_argos_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_raw_argos_df_20230706.rds'))
+
+
+
+
+################################################################
+
+
+#load in master data file
+raw_argos_df <- read_rds(here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_raw_argos_df_20230706.rds'))
+
+#change column names to match Xuelei code
+#also convert longitude from 0-180 to 0-360
+raw_argos_df <- raw_argos_df %>% 
+  dplyr::rename(id = Ptt,
+                lat = Latitude,
+                #lon = Longitude,
+                lc = Quality,
+                date = DateTime_UTC) %>% 
+  mutate(lon = ifelse(Longitude <0, 360-Longitude*-1, Longitude))
+
+
+
+# SDA filter 
+# vmax in m/s
+#Xuelei used 25, but use 5m/s as per Reisinger et al., 2021
+raw_argos_df <- ddply(raw_argos_df, ~id, function(d){
+  d$argosfilter <- sdafilter(lat = d$lat, 
+                             lon = d$lon, 
+                             lc = d$lc, 
+                             dtime = d$date, vmax = 5)
+  return(d)
+})
+
+glimpse(raw_argos_df)
+
+
+# visualize filter 
+with(raw_argos_df, plot(lon,lat,col="lightgrey",type="p",xlab="Longitude",ylab="Latitude", pch=19, cex=0.8)) #all data , xlim=c(55,170), ylim=c(-65, -35)
+with(raw_argos_df, points(lon[which(argosfilter=="not")],lat[which(argosfilter=="not")],col="blue", pch=19, cex=0.8)) #all data to be retained
+with(raw_argos_df, points(lon[which(argosfilter=="removed")],lat[which(argosfilter=="removed")],col="red", pch=19, cex=0.5)) #removed locations
+
+
+# exclude errorneous locs 
+filtered_argos_df <- raw_argos_df %>%
+  filter(argosfilter != "removed") %>%
+  dplyr::select(-argosfilter)
+
+
+
+
+tab_1 <- raw_argos_df %>% 
+  group_by(id) %>% 
+  dplyr::summarize(nb_locations = n())
+
+tab_2 <- filtered_argos_df %>% 
+  group_by(id) %>% 
+  dplyr::summarize(nb_locations = n())
+
+tab  <- plyr::join(data.frame(tab_1), data.frame(tab_2), by="id")
+colnames(tab) <- c("id", "raw_locs", "filt_locs")
+tab
+
+
+
+################################################################
+
+#remove duplicates
+
+
+pre_dup <- nrow(filtered_argos_df) # to get the current number of data points
+
+# create dummy variable
+filtered_argos_df$index <- c(1:nrow(filtered_argos_df))
+
+# run each tag in a loop to check for duplicates
+# if there is a time duplicate, select the best quality position or simply the first position
+filtered_argos_df <- ddply(filtered_argos_df, ~id, function(d){
+  toremove <- c()
+  for (i in c(2:nrow(d))) {
+    if (d$date[i] == d$date[i-1]) {
+      dd <- d[(i-1):i,]
+      r <- dd[dd$lc == ave(dd$lc, FUN = min), "index"] # find the lowest quality
+      toremove <- c(toremove, r[1]) #select first element of r in case both locations have the same lq
+    }
+  }
+  if (length(toremove) > 0){d <- d[!(d$index %in% toremove), ]}
+  return(d)
+})
+# remove dummy variable
+filtered_argos_df$index <- NULL
+pre_dup - nrow(filtered_argos_df) #1492
+
+
+
+################################################################
+
+#Time difference between successive locations
+
+time_diff_hours_df <- ddply(filtered_argos_df, ~id, function(d){
+  d$time_diff_hours <- NA
+  for (i in 2:nrow(d)){
+    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
+  return(d)
+})
+
+# mean time difference between locations (in hours)
+
+mts <- aggregate(time_diff_hours~id, time_diff_hours_df, mean)
+mts #this is the mean time step
+
+mxts <- aggregate(time_diff_hours~id, time_diff_hours_df, max)
+mxts# this is the max time step
+
+mnts <- aggregate(time_diff_hours~id, time_diff_hours_df, min)
+mnts # this is the minimum time step
+
+mets <- aggregate(time_diff_hours~id, time_diff_hours_df, median)
+mets # this is the median time step
+
+
+ggplot(time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,100)) + 
+  xlab("Time difference between successive locations")
+
+ggplot(time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,15)) + 
+  xlab("Time difference between successive locations")
+
+
+################################################################
+
+#Segment tracks
+
+trackseg_argos_df <- ddply(time_diff_hours_df, ~id, function(d){
+  ind <- which(d$time_diff_hours > 24)
+  d$mark <- 0
+  d$mark[ind] <- 1
+  d$track_seg <- cumsum(d$mark)
+  return(d)
+})
+
+# Now create a new id based on track segment
+trackseg_argos_df$track_id <- paste(trackseg_argos_df$id, "-", trackseg_argos_df$track_seg, sep="")
+
+table(trackseg_argos_df$track_id)
+
+length(unique(trackseg_argos_df$track_id)) #123
+
+
+# remove short track segs n <10 
+min_obs <- 10 ## set the number of minimum obs acceptable
+trackseg_argos_df <- trackseg_argos_df %>% group_by(track_id)
+trackseg_argos_df_filt <- filter(trackseg_argos_df, n() >= min_obs)
+
+table(trackseg_argos_df_filt$track_id)
+length(unique(trackseg_argos_df_filt$track_id)) # 77 
+
+# 48791 locs left in df
+
+
+################################################################
+
+#SSM
+
+#df is slightly different to Xuelei's, who here selected columns like this
+#ssm_df <- trackseg_argos_df_filt[,c(2:5,9)]
+#will do that later, so can use 'cohort' column when looking at time diff between steps
+
+ssm_df <- trackseg_argos_df_filt
+
+#remove the poor quality locations
+ssm_df <- ssm_df %>% 
+  filter (lc != "Z")
+
+
+ssm_tdiff_hours_df <- ddply(ssm_df, ~track_id, function(d){
+  d$time_diff_hours <- NA
+  for (i in 2:nrow(d)){
+    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
+  return(d)
+})
+
+mts <- aggregate(time_diff_hours~ track_id, ssm_tdiff_hours_df, mean)
+mts 
+
+mean(mts$time_diff_hours) # 3.67 hrs for overall --- this is taking mean of a mean
+
+#by annual cohort
+time_diff_summary <- ssm_tdiff_hours_df %>% 
+  group_by(cohort) %>% #, track_id
+  summarise(first=quantile(time_diff_hours,probs=0.25, na.rm = TRUE),
+            second=quantile(time_diff_hours,probs=0.5, na.rm = TRUE),
+            third=quantile(time_diff_hours,probs=0.75, na.rm = TRUE),
+            mean = mean(time_diff_hours, na.rm = TRUE))
+#  cohort first second third  mean
+#   2020  0.266  0.603  1.31  1.45
+#   2021  0.271  0.682  2.38  1.98
+#   2022  0.317  0.89   2.98  2.16
+
+
+#now structure the data frame so it matches the required structure for SSM
+ssm_df <- ssm_df %>% 
+  select(track_id, date, lc, lon, lat) %>% 
+  dplyr::rename(id = track_id)
+
+
+#write_rds(ssm_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230706.rds'))
+
+
+################################################################
+
+#read in file ready for ssm
+ssm_df <- read_rds(here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230706.rds'))
+
+
+
+###2020
+
+# 16121 lcs
+
+ssm_2020 <- ssm_df %>% subset (id == "203571-0"|
+                               id == "203571-1"|
+                               
+                               id == "203572-0"|
+                               id == "203572-1"|
+                               
+                               id == "203573-0"|
+                               id == "203573-1"|
+                               
+                               id == "203574-0"|
+                               
+                               id == "203575-0"|
+                               id == "203575-2"|
+                                 
+                               id == "205015-0")
+# average time difference = 1.45
+
+table(ssm_2020$id)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_5h_NZ_2020<- fit_ssm(ssm_2020, vmax=5, model="crw", time.step=5, control = ssm_control(verbose=0))
+
+fit_ssm_5h_NZ_2020
+
+#plot(fit_ssm_5h_NZ_2020,ask=F,type=2,alpha=0.1,what="p")
+
+
+ssm_2020_df <- grab(fit_ssm_5h_NZ_2020,what="p") # 
+
+table(ssm_2020_df$id)
+
+#ssm_2020_df <- ssm_2020_df %>% filter (id != "203573-1")
+
+test <- fit_ssm_5h_NZ_2020 %>% filter (id != "203573-1")
+mpm_NZ_2020<- fit_mpm(fit_ssm_5h_NZ_2020, model="jmpm", control = mpm_control(verbose = 0)) #model="jmpm"
+#Error in nlminb(obj$par, ifelse(control$verbose == 1, myfn, obj$fn), obj$gr,  : 
+#                  NA/NaN gradient evaluation
+#https://github.com/ianjonsen/aniMotum/issues/29 :
+#"In the joint move persistence model jmpm, the variance parameter for the random walk on γt is shared among individuals, 
+#which can lead to optimizer errors (like the one you've encountered) if the tracks being fit 
+#represent very different movement patterns. I don't think the different ranges in longitude should matter though.
+#You could explore this by iteratively removing individual tracks and re-fitting the jmpm"
+##---------- works if drop 203573-1
+
+#3h jmpm no errors
+#3h mpm no errors
+#5h jmpm no errors
+
+mpm_NZ_2020
+
+#plot(mpm_NZ_2020,ask=F)
+
+
+mpm_NZ_2020_df <- grab(x=mpm_NZ_2020,what = "f") 
+
+ssm_mpm_NZ_2020<- dplyr::full_join(x=ssm_2020_df,y=mpm_NZ_2020_df)
+
+ggplot(data.frame(ssm_mpm_NZ_2020),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+mean(ssm_mpm_NZ_2020$g)
+
+# fit_mpm jmpm mean g= 0.61 ts=6h 3754 locs 
+# Xuelei comment: mpm did not fit when ts = 4h 
+
+##which one is better mpm or jmpm??
+
+
+##Xuelei comments:
+# ts = 5h 4503 locs; NaNs produced "203573-1 didnot converge when used mpm 
+# ts = 5h jmpm mean=0.66
+# 5h seems to be better lowe CI move persistence lines seem to be smoother 
+
+
+quantile(ssm_mpm_NZ_2020$g, probs = 0.3)
+quantile(ssm_mpm_NZ_2020$g, na.rm = TRUE)
+#5h jmpm
+# 0%        25%        50%        75%       100% 
+# 0.02303193 0.43859461 0.72624702 0.84551633 0.93622054 
+
+test <- ssm_mpm_NZ_2020 %>% 
+  mutate(mode = case_when(g < 0.5024051   ~ "ARS",
+                          g >= 0.5024051  ~ "transit"))
+
+ggplot(data.frame(test),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+################################################################
+
+
+
+
+################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+########delete the following:
 
 # SDA filter 
 
