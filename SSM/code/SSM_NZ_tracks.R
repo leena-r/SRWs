@@ -342,9 +342,13 @@ time_diff_summary <- ssm_tdiff_hours_df %>%
 
 
 #now structure the data frame so it matches the required structure for SSM
+#keep but rename error ellipse variables
 ssm_df <- ssm_df %>% 
-  select(track_id, date, lc, lon, lat) %>% 
-  dplyr::rename(id = track_id)
+  select(track_id, date, lc, lon, lat, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`) %>% 
+  dplyr::rename(id = track_id, 
+                smaj = `Error Semi-major axis`, 
+                smin = `Error Semi-minor axis`, 
+                eor = `Error Ellipse orientation`)
 
 
 #write_rds(ssm_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230706.rds'))
@@ -353,7 +357,7 @@ ssm_df <- ssm_df %>%
 ################################################################
 
 #read in file ready for ssm
-ssm_df <- read_rds(here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230706.rds'))
+#ssm_df <- read_rds(here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230706.rds'))
 
 
 
@@ -386,6 +390,7 @@ fit_ssm_5h_NZ_2020<- fit_ssm(ssm_2020, vmax=5, model="crw", time.step=5, control
 fit_ssm_5h_NZ_2020
 
 #plot(fit_ssm_5h_NZ_2020,ask=F,type=2,alpha=0.1,what="p")
+#summary(fit_ssm_5h_NZ_2020)
 
 
 ssm_2020_df <- grab(fit_ssm_5h_NZ_2020,what="p") # 
@@ -394,7 +399,7 @@ table(ssm_2020_df$id)
 
 #ssm_2020_df <- ssm_2020_df %>% filter (id != "203573-1")
 
-test <- fit_ssm_5h_NZ_2020 %>% filter (id != "203573-1")
+#test <- fit_ssm_5h_NZ_2020 %>% filter (id != "203573-1")
 mpm_NZ_2020<- fit_mpm(fit_ssm_5h_NZ_2020, model="jmpm", control = mpm_control(verbose = 0)) #model="jmpm"
 #Error in nlminb(obj$par, ifelse(control$verbose == 1, myfn, obj$fn), obj$gr,  : 
 #                  NA/NaN gradient evaluation
@@ -414,7 +419,7 @@ mpm_NZ_2020
 #plot(mpm_NZ_2020,ask=F)
 
 
-mpm_NZ_2020_df <- grab(x=mpm_NZ_2020,what = "f") 
+mpm_NZ_2020_df <- grab(x=mpm_NZ_2020,what = "f") #,normalise = TRUE, group = TRUE
 
 ssm_mpm_NZ_2020<- dplyr::full_join(x=ssm_2020_df,y=mpm_NZ_2020_df)
 
@@ -460,6 +465,13 @@ ggplot(data.frame(test),aes(lon, lat)) +
   theme_bw()+
   theme(panel.grid=element_blank())
 ggplotly()
+
+
+#test
+test <- ssm_mpm_NZ_2020 %>% #25% value
+  mutate(mode = case_when(g < 0.5822575   ~ "ARS",
+                          g >= 0.5822575  ~ "transit"))
+#write_csv(test,here::here('SSM', 'data', 'NZ_SRW_2020_5h_SSM_jmpm_dup filtered by fit_smm_g normalised by group.csv'))
 
 ################################################################
 
