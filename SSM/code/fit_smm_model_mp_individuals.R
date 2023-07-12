@@ -120,9 +120,8 @@ all_ptt_2022$cohort <- 2022
 raw_argos_df <- rbind(all_ptt_2020,all_ptt_2021,all_ptt_2022)
 
 
-#safe combined NZ SRW data file - note that 3 2022 tags still going
+#save combined NZ SRW data file - note that 3 2022 tags still going
 #write_rds(raw_argos_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_raw_argos_df_20230706.rds'))
-
 
 
 
@@ -209,13 +208,13 @@ table(trackseg_argos_df$track_id)
 length(unique(trackseg_argos_df$track_id)) #123
 
 
-# remove short track segs, test n <15 
+# remove short track segs, test n <20 
 min_obs <- 20 ## set the number of minimum obs acceptable
 trackseg_argos_df <- trackseg_argos_df %>% group_by(track_id)
 trackseg_argos_df_filt <- filter(trackseg_argos_df, n() >= min_obs)
 
 table(trackseg_argos_df_filt$track_id)
-length(unique(trackseg_argos_df_filt$track_id)) # 65 
+length(unique(trackseg_argos_df_filt$track_id)) # 65 if track segment <15 removed, 60 if track <20 removed
 
 
 
@@ -266,7 +265,7 @@ ssm_df <- ssm_df %>%
                 eor = `Error Ellipse orientation`)
 
 ##haven't actually saved this version
-#write_rds(ssm_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230711.rds'))
+#write_rds(ssm_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230713.rds'))
 
 
 ################################################################
@@ -724,7 +723,7 @@ NZ_2020_ssm_mp <- rbind(fit_ssm_3h_track_id_203571_0,
                         fit_ssm_3h_track_id_205015_0)
 
 
-#write_csv(NZ_2020_ssm_mp,here::here('SSM', 'data', 'NZ_2020_ssm_mp_normalised in each track_20230711.csv'))
+#write_csv(NZ_2020_ssm_mp,here::here('SSM', 'data', 'NZ_2020_ssm_mp_normalised in each track_20230711_shortgapis20loc.csv'))
 
 
 ###############################################################################
@@ -736,7 +735,6 @@ NZ_2020_ssm_mp <- rbind(fit_ssm_3h_track_id_203571_0,
 # ssm_2021 <- ssm_df %>% subset (id == "46633-0"|
 #
 #                                  id == "46635-0"|
-#                                  id == "46635-2"|
 #                                  id == "46635-3"|
 #                                  
 #                                  id == "46950-0"|
@@ -759,7 +757,6 @@ NZ_2020_ssm_mp <- rbind(fit_ssm_3h_track_id_203571_0,
 #                                  id == "215259-0"|
 #                                  id == "215259-1"|
 #                                  id == "215259-2"|
-#                                  id == "215259-3"|
 #
 #                                  id == "215261-0"|
 #                                  id == "215261-2"|
@@ -767,7 +764,6 @@ NZ_2020_ssm_mp <- rbind(fit_ssm_3h_track_id_203571_0,
 #                                  id == "215262-0"|
 #                                  id == "215262-1"|
 #                                  id == "215262-2"|
-#                                  id == "215262-7"|
 #                                  id == "215262-9"|
 #                                  id == "215262-10"|
 #                                  id == "215262-11"|
@@ -775,7 +771,6 @@ NZ_2020_ssm_mp <- rbind(fit_ssm_3h_track_id_203571_0,
 #                                  id == "215262-14"|
 #                                  id == "215262-15"|
 #                                  id == "215262-19"|
-#                                  id == "215262-21"|
 #                                  id == "215262-23"|
 #
 #                                  id == "215263-0")
@@ -845,37 +840,6 @@ ggplot(data.frame(fit_ssm_3h_track_id_46635_0),aes(lon, lat)) +
   theme(panel.grid=element_blank())
 ggplotly()
 
-
-track_id_46635_2 <- ssm_df %>% subset (id == "46635-2")
-
-summary(track_id_46635_2$time_diff_hours)
-
-#speed filter threshold (vmax) of 5 ms−1
-fit_ssm_5h_track_id_46635_2 <- fit_ssm(track_id_46635_2, vmax=5, model="mp", time.step=5, control = ssm_control(verbose=0)) %>% 
-  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
-  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
-                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
-
-#quantile(fit_ssm_5h_track_id_46635_2$g, na.rm = TRUE)
-
-ggplot(data.frame(fit_ssm_5h_track_id_46635_2),aes(lon, lat)) +
-  geom_point(size=1, aes(col = g)) +
-  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
-  coord_equal() + 
-  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
-  theme_bw()+
-  theme(panel.grid=element_blank())+
-  sc
-ggplotly()
-
-ggplot(data.frame(fit_ssm_5h_track_id_46635_2),aes(lon, lat)) +
-  geom_point(size=1, aes(col = mode)) +
-  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
-  coord_equal() + 
-  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
-  theme_bw()+
-  theme(panel.grid=element_blank())
-ggplotly()
 
 
 track_id_46635_3 <- ssm_df %>% subset (id == "46635-3")
@@ -957,7 +921,7 @@ fit_ssm_3h_track_id_46955_0 <- fit_ssm(track_id_46955_0, vmax=5, model="mp", tim
   mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
                           g >= quantile(g, probs = 0.25)  ~ "transit")) 
 
-#quantile(fit_ssm_5h_track_id_46635_2$g, na.rm = TRUE)
+#quantile(fit_ssm_3h_track_id_46955_0$g, na.rm = TRUE)
 
 ggplot(data.frame(fit_ssm_3h_track_id_46955_0),aes(lon, lat)) +
   geom_point(size=1, aes(col = g)) +
@@ -1413,40 +1377,6 @@ ggplotly()
 
 
 
-track_id_215259_3 <- ssm_df %>% subset (id == "215259-3")
-
-summary(track_id_215259_3$time_diff_hours)
-
-#speed filter threshold (vmax) of 5 ms−1
-fit_ssm_12h_track_id_215259_3 <- fit_ssm(track_id_215259_3, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0)) %>% 
-  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
-  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
-                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
-
-#quantile(fit_ssm_12h_track_id_215259_3$g, na.rm = TRUE)
-
-ggplot(data.frame(fit_ssm_12h_track_id_215259_3),aes(lon, lat)) +
-  geom_point(size=1, aes(col = g)) +
-  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
-  coord_equal() + 
-  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
-  theme_bw()+
-  theme(panel.grid=element_blank())+
-  sc
-ggplotly()
-
-ggplot(data.frame(fit_ssm_12h_track_id_215259_3),aes(lon, lat)) +
-  geom_point(size=1, aes(col = mode)) +
-  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
-  coord_equal() + 
-  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
-  theme_bw()+
-  theme(panel.grid=element_blank())
-ggplotly()
-
-
-
-
 
 track_id_215261_0 <- ssm_df %>% subset (id == "215261-0")
 
@@ -1516,15 +1446,7 @@ ggplotly()
 
 
 
-#                                  id == "215262-9"|
-#                                  id == "215262-10"|
-#                                  id == "215262-11"|
-#                                  id == "215262-13"|
-#                                  id == "215262-14"|
-#                                  id == "215262-15"|
-#                                  id == "215262-19"|
-#                                  id == "215262-23"|
-##"215262-0"  "215262-1"  "215262-8"  "215262-9"  "215262-10" "215262-12" "215262-14"
+##"215262"  
 ##the number of segments and how well they work in SSM depend on time gap settings etc
 
 track_id_215262_0 <- ssm_df %>% subset (id == "215262-0")
@@ -1592,19 +1514,19 @@ ggplotly()
 
 
 
-track_id_215262_8 <- ssm_df %>% subset (id == "215262-8")
+track_id_215262_2 <- ssm_df %>% subset (id == "215262-2")
 
-summary(track_id_215262_8$time_diff_hours)
+summary(track_id_215262_2$time_diff_hours)
 
 #speed filter threshold (vmax) of 5 ms−1
-fit_ssm_12h_track_id_215262_8 <- fit_ssm(track_id_215262_8, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0)) %>% 
+fit_ssm_12h_track_id_215262_2 <- fit_ssm(track_id_215262_2, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0)) %>% 
   grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
   mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
                           g >= quantile(g, probs = 0.25)  ~ "transit")) 
 
-#quantile(fit_ssm_12h_track_id_215262_8$g, na.rm = TRUE)
+#quantile(fit_ssm_12h_track_id_215262_2$g, na.rm = TRUE)
 
-ggplot(data.frame(fit_ssm_12h_track_id_215262_8),aes(lon, lat)) +
+ggplot(data.frame(fit_ssm_12h_track_id_215262_2),aes(lon, lat)) +
   geom_point(size=1, aes(col = g)) +
   geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
   coord_equal() + 
@@ -1614,7 +1536,7 @@ ggplot(data.frame(fit_ssm_12h_track_id_215262_8),aes(lon, lat)) +
   sc
 ggplotly()
 
-ggplot(data.frame(fit_ssm_12h_track_id_215262_8),aes(lon, lat)) +
+ggplot(data.frame(fit_ssm_12h_track_id_215262_2),aes(lon, lat)) +
   geom_point(size=1, aes(col = mode)) +
   geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
   coord_equal() + 
@@ -1691,19 +1613,19 @@ ggplotly()
 
 
 
-track_id_215262_14 <- ssm_df %>% subset (id == "215262-14")
+track_id_215262_11 <- ssm_df %>% subset (id == "215262-11")
 
-summary(track_id_215262_14$time_diff_hours)
+summary(track_id_215262_11$time_diff_hours)
 
 #speed filter threshold (vmax) of 5 ms−1
-fit_ssm_15h_track_id_215262_14 <- fit_ssm(track_id_215262_14, vmax=5, model="mp", time.step=15, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+fit_ssm_12h_track_id_215262_11 <- fit_ssm(track_id_215262_11, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
   grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
   mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
                           g >= quantile(g, probs = 0.25)  ~ "transit")) 
 
-#quantile(fit_ssm_15h_track_id_215262_14$g, na.rm = TRUE)
+#quantile(fit_ssm_12h_track_id_215262_11$g, na.rm = TRUE)
 
-ggplot(data.frame(fit_ssm_15h_track_id_215262_14),aes(lon, lat)) +
+ggplot(data.frame(fit_ssm_12h_track_id_215262_11),aes(lon, lat)) +
   geom_point(size=1, aes(col = g)) +
   geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
   coord_equal() + 
@@ -1713,7 +1635,1412 @@ ggplot(data.frame(fit_ssm_15h_track_id_215262_14),aes(lon, lat)) +
   sc
 ggplotly()
 
-ggplot(data.frame(fit_ssm_15h_track_id_215262_14),aes(lon, lat)) +
+ggplot(data.frame(fit_ssm_12h_track_id_215262_11),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_215262_13 <- ssm_df %>% subset (id == "215262-13")
+
+summary(track_id_215262_13$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_12h_track_id_215262_13 <- fit_ssm(track_id_215262_13, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_12h_track_id_215262_13$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_12h_track_id_215262_13),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_12h_track_id_215262_13),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_215262_14 <- ssm_df %>% subset (id == "215262-14")
+
+summary(track_id_215262_14$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_6h_track_id_215262_14 <- fit_ssm(track_id_215262_14, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_6h_track_id_215262_14$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_6h_track_id_215262_14),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_6h_track_id_215262_14),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_215262_15 <- ssm_df %>% subset (id == "215262-15")
+
+summary(track_id_215262_15$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_15h_track_id_215262_15 <- fit_ssm(track_id_215262_15, vmax=5, model="mp", time.step=15, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_15h_track_id_215262_15$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_15h_track_id_215262_15),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_15h_track_id_215262_15),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_215262_19 <- ssm_df %>% subset (id == "215262-19")
+
+summary(track_id_215262_19$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_9h_track_id_215262_19 <- fit_ssm(track_id_215262_19, vmax=5, model="mp", time.step=9, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_9h_track_id_215262_19$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_9h_track_id_215262_19),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_9h_track_id_215262_19),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_215262_23 <- ssm_df %>% subset (id == "215262-23")
+
+summary(track_id_215262_23$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_15h_track_id_215262_23 <- fit_ssm(track_id_215262_23, vmax=5, model="mp", time.step=15, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_15h_track_id_215262_23$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_15h_track_id_215262_23),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_15h_track_id_215262_23),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_215263_0 <- ssm_df %>% subset (id == "215263-0")
+
+summary(track_id_215263_0$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_215263_0 <- fit_ssm(track_id_215263_0, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_215263_0$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_215263_0),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_215263_0),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+NZ_2021_ssm_mp <- rbind(fit_ssm_3h_track_id_46633_0, 
+                        fit_ssm_3h_track_id_46635_0, 
+                        fit_ssm_3h_track_id_46635_3, 
+                        fit_ssm_5h_track_id_46950_0, 
+                        fit_ssm_3h_track_id_46955_0, 
+                        fit_ssm_3h_track_id_212499_0, 
+                        fit_ssm_3h_track_id_212500_0, 
+                        fit_ssm_3h_track_id_215258_0, 
+                        fit_ssm_3h_track_id_215258_3, 
+                        fit_ssm_12h_track_id_215258_4, 
+                        fit_ssm_12h_track_id_215258_9, 
+                        fit_ssm_5h_track_id_215258_11, 
+                        fit_ssm_5h_track_id_215258_13, 
+                        fit_ssm_6h_track_id_215258_14, 
+                        fit_ssm_3h_track_id_215258_15, 
+                        fit_ssm_3h_track_id_215259_0, 
+                        fit_ssm_12h_track_id_215259_1, 
+                        fit_ssm_12h_track_id_215259_2, 
+                        fit_ssm_5h_track_id_215261_0, 
+                        fit_ssm_9h_track_id_215261_2, 
+                        fit_ssm_6h_track_id_215262_0, 
+                        fit_ssm_12h_track_id_215262_1, 
+                        fit_ssm_12h_track_id_215262_2, 
+                        fit_ssm_6h_track_id_215262_9, 
+                        fit_ssm_20h_track_id_215262_10, 
+                        fit_ssm_12h_track_id_215262_11, 
+                        fit_ssm_12h_track_id_215262_13, 
+                        fit_ssm_6h_track_id_215262_14, 
+                        fit_ssm_15h_track_id_215262_15, 
+                        fit_ssm_9h_track_id_215262_19, 
+                        fit_ssm_15h_track_id_215262_23,  
+                        fit_ssm_3h_track_id_215263_0)
+
+
+#write_csv(NZ_2021_ssm_mp,here::here('SSM', 'data', 'NZ_2021_ssm_mp_normalised in each track_20230713_shortgapis20loc.csv'))
+
+
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+###2021
+### try doing manually
+# 
+# ssm_2022 <- ssm_df %>% subset (id == "197853-1"|
+#                                  id == "197853-2"|
+#
+#
+#                                  id == "208742-1"|
+#                                  id == "208742-2"|
+#
+#                                  id == "235399-2"|
+#                                  id == "235399-4"|
+#                                  id == "235399-7"|
+#
+#                                  id == "235400-0"|
+#                                  id == "235400-2"|
+#                                  id == "235400-3"|
+#
+#                                  id == "235401-2"|
+#
+#                                  id == "235402-1"|
+#                                  id == "235402-2"|
+#                                  id == "235401-3"|
+#                                  id == "235401-4"|
+#
+#                                  id == "235403-0"|
+#
+#                                  id == "235404-1"|
+#                                  id == "235404-2"|
+#                                  id == "235404-3"|
+#                                   )
+
+
+track_id_197853_1 <- ssm_df %>% subset (id == "197853-1")
+
+summary(track_id_197853_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_197853_1 <- fit_ssm(track_id_197853_1, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_197853_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_197853_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_197853_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_197853_2 <- ssm_df %>% subset (id == "197853-2")
+
+summary(track_id_197853_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_197853_2 <- fit_ssm(track_id_197853_2, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_197853_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_197853_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_197853_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_208742_1 <- ssm_df %>% subset (id == "208742-1")
+
+summary(track_id_208742_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_5h_track_id_208742_1 <- fit_ssm(track_id_208742_1, vmax=5, model="mp", time.step=5, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_5h_track_id_208742_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_5h_track_id_208742_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_5h_track_id_208742_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_208742_2 <- ssm_df %>% subset (id == "208742-2")
+
+summary(track_id_208742_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_9h_track_id_208742_2 <- fit_ssm(track_id_208742_2, vmax=5, model="mp", time.step=9, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_9h_track_id_208742_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_9h_track_id_208742_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_9h_track_id_208742_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+
+track_id_235399_2 <- ssm_df %>% subset (id == "235399-2")
+
+summary(track_id_235399_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235399_2 <- fit_ssm(track_id_235399_2, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235399_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235399_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_235399_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+#track_id_235399_4 <- ssm_df %>% subset (id == "235399-4")
+#summary(track_id_235399_4$time_diff_hours)
+## problem track, only 20 loc
+
+
+track_id_235399_7 <- ssm_df %>% subset (id == "235399-7")
+
+summary(track_id_235399_7$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_6h_track_id_235399_7 <- fit_ssm(track_id_235399_7, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_6h_track_id_235399_7$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_6h_track_id_235399_7),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_6h_track_id_235399_7),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235400_0 <- ssm_df %>% subset (id == "235400-0")
+
+summary(track_id_235400_0$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235400_0 <- fit_ssm(track_id_235400_0, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235400_0$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235400_0),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_235400_0),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235400_2 <- ssm_df %>% subset (id == "235400-2")
+
+summary(track_id_235400_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_5h_track_id_235400_2 <- fit_ssm(track_id_235400_2, vmax=5, model="mp", time.step=5, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_5h_track_id_235400_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_5h_track_id_235400_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_5h_track_id_235400_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235400_3 <- ssm_df %>% subset (id == "235400-3")
+
+summary(track_id_235400_3$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_5h_track_id_235400_3 <- fit_ssm(track_id_235400_3, vmax=5, model="mp", time.step=5, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_5h_track_id_235400_3$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_5h_track_id_235400_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_5h_track_id_235400_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+track_id_235401_2 <- ssm_df %>% subset (id == "235401-2")
+
+summary(track_id_235401_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235401_2 <- fit_ssm(track_id_235401_2, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235401_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235401_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_235401_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+track_id_235402_1 <- ssm_df %>% subset (id == "235402-1")
+
+summary(track_id_235402_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_5h_track_id_235402_1 <- fit_ssm(track_id_235402_1, vmax=5, model="mp", time.step=5, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_5h_track_id_235402_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_5h_track_id_235402_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_5h_track_id_235402_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+track_id_235402_2 <- ssm_df %>% subset (id == "235402-2")
+
+summary(track_id_235402_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_6h_track_id_235402_2 <- fit_ssm(track_id_235402_2, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_6h_track_id_235402_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_6h_track_id_235402_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_6h_track_id_235402_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235402_3 <- ssm_df %>% subset (id == "235402-3")
+
+summary(track_id_235402_3$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235402_3 <- fit_ssm(track_id_235402_3, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235402_3$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235402_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_235402_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+track_id_235402_4 <- ssm_df %>% subset (id == "235402-4")
+
+summary(track_id_235402_4$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_5h_track_id_235402_4 <- fit_ssm(track_id_235402_4, vmax=5, model="mp", time.step=5, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_5h_track_id_235402_4$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_5h_track_id_235402_4),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_5h_track_id_235402_4),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+track_id_235403_0 <- ssm_df %>% subset (id == "235403-0")
+
+summary(track_id_235403_0$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235403_0 <- fit_ssm(track_id_235403_0, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235403_0$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235403_0),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_235403_0),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+track_id_235404_1 <- ssm_df %>% subset (id == "235404-1")
+
+summary(track_id_235404_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235404_1 <- fit_ssm(track_id_235404_1, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235404_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235404_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_235404_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235404_2 <- ssm_df %>% subset (id == "235404-2")
+
+summary(track_id_235404_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235404_2 <- fit_ssm(track_id_235404_2, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235404_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235404_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_3h_track_id_235404_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235404_3 <- ssm_df %>% subset (id == "235404-3")
+
+summary(track_id_235404_3$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_6h_track_id_235404_3 <- fit_ssm(track_id_235404_3, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0), map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_6h_track_id_235404_3$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_6h_track_id_235404_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+ggplot(data.frame(fit_ssm_6h_track_id_235404_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+NZ_2022_ssm_mp <- rbind(fit_ssm_3h_track_id_197853_1, 
+                        fit_ssm_3h_track_id_197853_2, 
+                        fit_ssm_5h_track_id_208742_1, 
+                        fit_ssm_9h_track_id_208742_2, 
+                        fit_ssm_3h_track_id_235399_2, 
+                        fit_ssm_6h_track_id_235399_7, 
+                        fit_ssm_3h_track_id_235400_0, 
+                        fit_ssm_5h_track_id_235400_2, 
+                        fit_ssm_5h_track_id_235400_3, 
+                        fit_ssm_3h_track_id_235401_2, 
+                        fit_ssm_5h_track_id_235402_1, 
+                        fit_ssm_6h_track_id_235402_2, 
+                        fit_ssm_3h_track_id_235402_3, 
+                        fit_ssm_5h_track_id_235402_4, 
+                        fit_ssm_3h_track_id_235403_0, 
+                        fit_ssm_3h_track_id_235404_1, 
+                        fit_ssm_3h_track_id_235404_2, 
+                        fit_ssm_6h_track_id_235404_3)
+
+
+#write_csv(NZ_2022_ssm_mp,here::here('SSM', 'data', 'NZ_2022_ssm_mp_normalised in each track_20230713_shortgapis20loc.csv'))
+
+
+
+
+#######################################################################################################
+###################################### OZ DATA ########################################################
+#######################################################################################################
+###########
+#combine OZ data into one master file
+#note that couple of the tags are still transmitting
+
+##OZ 2022
+Ptt235405_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235405', "235405-Locations.csv"))
+Ptt235406_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235406', "235406-Locations.csv"))
+Ptt235407_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235407', "235407-Locations.csv"))
+Ptt235408_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235408', "235408-Locations.csv"))
+Ptt235409_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235409', "235409-Locations.csv"))
+Ptt235410_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235410', "235410-Locations.csv"))
+Ptt235411_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235411', "235411-Locations.csv"))
+Ptt235412_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235412', "235412-Locations.csv"))
+Ptt235413_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235413', "235413-Locations.csv"))
+Ptt235414_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235414', "235414-Locations.csv"))
+Ptt235621_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235621', "235621-Locations.csv"))
+Ptt235622_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235622', "235622-Locations.csv"))
+
+Ptt235408_raw$Quality <- as.character(Ptt235408_raw$Quality) 
+Ptt235409_raw$Quality <- as.character(Ptt235409_raw$Quality) 
+
+all_ptt_OZ_2022 <- bind_rows(Ptt235405_raw, Ptt235406_raw, Ptt235407_raw, 
+                             Ptt235408_raw, Ptt235409_raw, Ptt235410_raw,
+                             Ptt235411_raw, Ptt235412_raw, Ptt235413_raw,
+                             Ptt235414_raw, Ptt235621_raw, Ptt235622_raw)
+
+#Only keep desired columns
+all_ptt_OZ_2022 <- all_ptt_OZ_2022 %>% 
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_OZ_2022 <- all_ptt_OZ_2022 %>% 
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC)) 
+
+all_ptt_OZ_2022$cohort <- 2022
+
+#raw_argos_df <- rbind(all_ptt_2020,all_ptt_2021,all_ptt_2022)
+
+#save combined OZ SRW data file - note that some tags still going
+#write_rds(all_ptt_OZ_2022,here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20230713.rds'))
+
+
+################################################################
+
+
+#load in master data file
+raw_OZ_argos_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20230713.rds'))
+
+#change column names to match Xuelei code
+#also convert longitude from 0-180 to 0-360
+raw_OZ_argos_df <- raw_OZ_argos_df %>% 
+  dplyr::rename(id = Ptt,
+                lat = Latitude,
+                #lon = Longitude,
+                lc = Quality,
+                date = DateTime_UTC) %>% 
+  mutate(lon = ifelse(Longitude <0, 360-Longitude*-1, Longitude))
+
+
+
+# SDA filter - leave this to fit_ssm
+
+
+################################################################
+
+#remove duplicates - leave this to fit_ssm
+
+
+################################################################
+
+#Time difference between successive locations
+
+OZ_time_diff_hours_df <- ddply(raw_OZ_argos_df, ~id, function(d){
+  d$time_diff_hours <- NA
+  for (i in 2:nrow(d)){
+    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
+  return(d)
+})
+
+# mean time difference between locations (in hours)
+
+mts <- aggregate(time_diff_hours~id, OZ_time_diff_hours_df, mean)
+mts #this is the mean time step
+
+mxts <- aggregate(time_diff_hours~id, OZ_time_diff_hours_df, max)
+mxts# this is the max time step
+
+mnts <- aggregate(time_diff_hours~id, OZ_time_diff_hours_df, min)
+mnts # this is the minimum time step
+
+mets <- aggregate(time_diff_hours~id, OZ_time_diff_hours_df, median)
+mets # this is the median time step
+
+
+ggplot(OZ_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,100)) + 
+  xlab("Time difference between successive locations")
+
+ggplot(OZ_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,15)) + 
+  xlab("Time difference between successive locations")
+
+
+################################################################
+
+#Segment tracks
+
+OZ_trackseg_argos_df <- ddply(OZ_time_diff_hours_df, ~id, function(d){
+  ind <- which(d$time_diff_hours > 24)
+  d$mark <- 0
+  d$mark[ind] <- 1
+  d$track_seg <- cumsum(d$mark)
+  return(d)
+})
+
+# Now create a new id based on track segment
+OZ_trackseg_argos_df$track_id <- paste(OZ_trackseg_argos_df$id, "-", OZ_trackseg_argos_df$track_seg, sep="")
+
+table(OZ_trackseg_argos_df$track_id)
+
+length(unique(OZ_trackseg_argos_df$track_id)) #45
+
+
+# remove short track segs, test n <20 
+min_obs <- 20 ## set the number of minimum obs acceptable
+OZ_trackseg_argos_df <- OZ_trackseg_argos_df %>% group_by(track_id)
+OZ_trackseg_argos_df_filt <- filter(OZ_trackseg_argos_df, n() >= min_obs)
+
+table(OZ_trackseg_argos_df_filt$track_id)
+length(unique(OZ_trackseg_argos_df_filt$track_id)) # 16
+
+
+################################################################
+
+#SSM
+
+
+OZ_ssm_df <- OZ_trackseg_argos_df_filt
+
+#remove the poor quality locations
+OZ_ssm_df <- OZ_ssm_df %>% 
+  filter (lc != "Z")
+
+
+OZ_ssm_tdiff_hours_df <- ddply(OZ_ssm_df, ~track_id, function(d){
+  d$time_diff_hours <- NA
+  for (i in 2:nrow(d)){
+    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
+  return(d)
+})
+
+mts <- aggregate(time_diff_hours~ track_id, OZ_ssm_tdiff_hours_df, mean)
+mts 
+
+mean(mts$time_diff_hours) # 2.95 hrs for overall --- this is taking mean of a mean
+
+#by annual cohort
+time_diff_summary <- OZ_ssm_tdiff_hours_df %>% 
+  group_by(cohort) %>% #, track_id
+  summarise(first=quantile(time_diff_hours,probs=0.25, na.rm = TRUE),
+            second=quantile(time_diff_hours,probs=0.5, na.rm = TRUE),
+            third=quantile(time_diff_hours,probs=0.75, na.rm = TRUE),
+            mean = mean(time_diff_hours, na.rm = TRUE))
+#  cohort first second third  mean
+#   2022 0.209  0.583  1.37  1.70
+
+
+#now structure the data frame so it matches the required structure for SSM
+#keep but rename error ellipse variables
+OZ_ssm_df <- OZ_ssm_df %>% 
+  select(track_id, date, lc, lon, lat, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`, cohort, time_diff_hours) %>% 
+  dplyr::rename(id = track_id, 
+                smaj = `Error Semi-major axis`, 
+                smin = `Error Semi-minor axis`, 
+                eor = `Error Ellipse orientation`)
+
+##haven't actually saved this version
+#write_rds(OZ_ssm_df,here::here('SSM', 'data', 'OZ_SRW_2022_ssm_df_20230713.rds'))
+
+
+################################################################
+
+#read in file ready for ssm
+#OZ_ssm_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_ssm_df_20230713.rds'))
+
+###2022
+### try doing manually
+# 
+# OZ_ssm_2022 <- OZ_ssm_df %>% subset (id == "235405-1"|
+#                                  
+#                                  id == "235407-1"|
+#                                  id == "235407-2"|
+#                                  
+#                                  id == "235410-2"|
+#                                  id == "235410-3"|
+#                                  
+#                                  id == "235411-1"|
+#                                  
+#                                  id == "235413-3"|
+#                                  id == "235413-4"|
+#                                  
+#                                  id == "235414-3"|
+#                                  id == "235414-4"|
+#                                  id == "235414-5"|
+#
+#                                  id == "235621-1"|
+#                                  id == "235621-2"|
+#                                  id == "235621-7"|
+#                                  id == "235621-8"|
+#
+#                                  id == "235622-1")
+
+track_id_235405_1 <- OZ_ssm_df %>% subset (id == "235405-1")
+
+summary(track_id_235405_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235405_1 <- fit_ssm(track_id_235405_1, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235405_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235405_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+
+ggplot(data.frame(fit_ssm_3h_track_id_235405_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235407_1 <- OZ_ssm_df %>% subset (id == "235407-1")
+
+summary(track_id_235407_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_6h_track_id_235407_1 <- fit_ssm(track_id_235407_1, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_6h_track_id_235407_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_6h_track_id_235407_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+
+ggplot(data.frame(fit_ssm_6h_track_id_235407_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235407_2 <- OZ_ssm_df %>% subset (id == "235407-2")
+
+summary(track_id_235407_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235407_2 <- fit_ssm(track_id_235407_2, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235407_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235407_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+
+ggplot(data.frame(fit_ssm_3h_track_id_235407_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235410_2 <- OZ_ssm_df %>% subset (id == "235410-2")
+
+summary(track_id_235410_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235410_2 <- fit_ssm(track_id_235410_2, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235410_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235410_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+
+ggplot(data.frame(fit_ssm_3h_track_id_235410_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235410_3 <- OZ_ssm_df %>% subset (id == "235410-3")
+
+summary(track_id_235410_3$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235410_3 <- fit_ssm(track_id_235410_3, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235410_3$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235410_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(50,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+
+ggplot(data.frame(fit_ssm_3h_track_id_235410_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(50,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+
+track_id_235411_1 <- OZ_ssm_df %>% subset (id == "235411-1")
+
+summary(track_id_235411_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_9h_track_id_235411_1 <- fit_ssm(track_id_235411_1, vmax=5, model="mp", time.step=9, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_9h_track_id_235411_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_9h_track_id_235411_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+
+ggplot(data.frame(fit_ssm_9h_track_id_235411_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+track_id_235413_3 <- OZ_ssm_df %>% subset (id == "235413-3")
+
+summary(track_id_235413_3$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_9h_track_id_235413_3 <- fit_ssm(track_id_235413_3, vmax=5, model="mp", time.step=9, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_9h_track_id_235413_3$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_9h_track_id_235413_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+
+ggplot(data.frame(fit_ssm_9h_track_id_235413_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235413_4 <- OZ_ssm_df %>% subset (id == "235413-4")
+
+summary(track_id_235413_4$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235413_4 <- fit_ssm(track_id_235413_4, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235413_4$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235413_4),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+ggplot(data.frame(fit_ssm_3h_track_id_235413_4),aes(lon, lat)) +
   geom_point(size=1, aes(col = mode)) +
   geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
   coord_equal() + 
@@ -1726,5 +3053,273 @@ ggplotly()
 
 
 
+
+track_id_235414_3 <- OZ_ssm_df %>% subset (id == "235414-3")
+
+summary(track_id_235414_3$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_3h_track_id_235414_3 <- fit_ssm(track_id_235414_3, vmax=5, model="mp", time.step=3, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_3h_track_id_235414_3$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_3h_track_id_235414_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+ggplot(data.frame(fit_ssm_3h_track_id_235414_3),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+track_id_235414_4 <- OZ_ssm_df %>% subset (id == "235414-4")
+
+summary(track_id_235414_4$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_12h_track_id_235414_4 <- fit_ssm(track_id_235414_4, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_12h_track_id_235414_4$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_12h_track_id_235414_4),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+ggplot(data.frame(fit_ssm_12h_track_id_235414_4),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235414_5 <- OZ_ssm_df %>% subset (id == "235414-5")
+
+summary(track_id_235414_5$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_12h_track_id_235414_5 <- fit_ssm(track_id_235414_5, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0),map = list(psi = factor(NA))) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_12h_track_id_235414_5$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_12h_track_id_235414_5),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+ggplot(data.frame(fit_ssm_12h_track_id_235414_5),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+
+track_id_235621_1 <- OZ_ssm_df %>% subset (id == "235621-1")
+
+summary(track_id_235621_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_9h_track_id_235621_1 <- fit_ssm(track_id_235621_1, vmax=5, model="mp", time.step=9, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_9h_track_id_235621_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_9h_track_id_235621_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+ggplot(data.frame(fit_ssm_9h_track_id_235621_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235621_2 <- OZ_ssm_df %>% subset (id == "235621-2")
+
+summary(track_id_235621_2$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_9h_track_id_235621_2 <- fit_ssm(track_id_235621_2, vmax=5, model="mp", time.step=9, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_9h_track_id_235621_2$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_9h_track_id_235621_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+ggplot(data.frame(fit_ssm_9h_track_id_235621_2),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+track_id_235621_7 <- OZ_ssm_df %>% subset (id == "235621-7")
+summary(track_id_235621_7$time_diff_hours)
+##problem track, nrow = 20
+
+
+
+track_id_235621_8 <- OZ_ssm_df %>% subset (id == "235621-8")
+
+summary(track_id_235621_8$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_12h_track_id_235621_8 <- fit_ssm(track_id_235621_8, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_12h_track_id_235621_8$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_12h_track_id_235621_8),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+ggplot(data.frame(fit_ssm_12h_track_id_235621_8),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+track_id_235622_1 <- OZ_ssm_df %>% subset (id == "235622-1")
+
+summary(track_id_235622_1$time_diff_hours)
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_6h_track_id_235622_1 <- fit_ssm(track_id_235622_1, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0)) %>% 
+  grab(what="p",normalise = TRUE) %>% ##normalised within each trackid
+  mutate(mode = case_when(g < quantile(g, probs = 0.25)   ~ "ARS",
+                          g >= quantile(g, probs = 0.25)  ~ "transit")) 
+
+#quantile(fit_ssm_6h_track_id_235622_1$g, na.rm = TRUE)
+
+ggplot(data.frame(fit_ssm_6h_track_id_235622_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = g)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  sc
+ggplotly()
+
+
+ggplot(data.frame(fit_ssm_6h_track_id_235622_1),aes(lon, lat)) +
+  geom_point(size=1, aes(col = mode)) +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,180), ylim=c(-70,-30))+
+  theme_bw()+
+  theme(panel.grid=element_blank())
+ggplotly()
+
+
+
+
+OZ_2022_ssm_mp <- rbind(fit_ssm_3h_track_id_235405_1, 
+                        fit_ssm_6h_track_id_235407_1, 
+                        fit_ssm_3h_track_id_235407_2, 
+                        fit_ssm_3h_track_id_235410_2, 
+                        fit_ssm_3h_track_id_235410_3, 
+                        fit_ssm_9h_track_id_235411_1, 
+                        fit_ssm_9h_track_id_235413_3, 
+                        fit_ssm_3h_track_id_235413_4, 
+                        fit_ssm_3h_track_id_235414_3, 
+                        fit_ssm_12h_track_id_235414_4, 
+                        fit_ssm_12h_track_id_235414_5, 
+                        fit_ssm_9h_track_id_235621_1, 
+                        fit_ssm_9h_track_id_235621_2, 
+                        fit_ssm_12h_track_id_235621_8, 
+                        fit_ssm_6h_track_id_235622_1)
+
+
+#write_csv(OZ_2022_ssm_mp,here::here('SSM', 'data', 'OZ_2022_ssm_mp_normalised in each track_20230713_shortgapis20loc.csv'))
 
 
