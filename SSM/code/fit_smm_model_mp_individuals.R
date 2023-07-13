@@ -732,6 +732,10 @@ NZ_2020_ssm_mp <- rbind(fit_ssm_3h_track_id_203571_0,
 ###2021
 ### try doing manually
 # 
+#"If you have Argos location data and your goal is to infer changes in movement behaviour 
+#along tracks then estimating locations and move persistence simultaneously within a state-space model 
+#is the preferred approach, as location uncertainty is accounted for in the move persistence estimates"
+#-https://rdrr.io/github/ianjonsen/foieGras/f/vignettes/Overview.Rmd
 # ssm_2021 <- ssm_df %>% subset (id == "46633-0"|
 #
 #                                  id == "46635-0"|
