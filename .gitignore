@@ -9,4 +9,5 @@ tag data/
 SSM/mapping
 SSM/data
 
-track animation/
+track animation/animations
+track animation/data
