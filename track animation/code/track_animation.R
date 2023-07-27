@@ -230,3 +230,223 @@ animate(path.animate.plot,
 
 
 
+##############################################################################
+
+
+#NZ tracks 
+#start with 2020
+
+# Read the csv file to animate tracks from
+# use SSM version as they are tidier 
+#file has been edited a bit, add column for PTT
+NZ_2020_ssm <- read_csv(here::here('track animation','data', "NZ_2020_ssm_mp_normalised in each track_20230711.csv"))
+NZ_2020_ssm <- as.data.frame(NZ_2020_ssm)
+
+NZ_2020_ssm$PTT <- as.factor(NZ_2020_ssm$PTT)
+NZ_2020_ssm <- NZ_2020_ssm %>% 
+  mutate(date = as_date(date_time)) 
+NZ_2020_ssm <- NZ_2020_ssm %>% 
+  dplyr::rename(whale_ID = PTT) 
+
+NZ_2020_ssm <- NZ_2020_ssm %>%  
+  mutate(lon = ifelse(lon <0, 360-lon*-1, lon))
+
+NZ_2020_ssm <- NZ_2020_ssm %>% mutate(
+  whale_ID = case_when(
+    whale_ID == 203571 ~ "Rima",
+    whale_ID == 203572 ~ "Toru",
+    whale_ID == 203573 ~ "Rua",
+    whale_ID == 203574 ~ "Wiremu (Bill)",
+    whale_ID == 203575 ~ "Tahi",
+    whale_ID == 205015 ~ "Whā"))
+
+NZ_2020_ssm$whale_ID <- factor(NZ_2020_ssm$whale_ID, 
+                               levels=c("Tahi", "Rua", "Toru", "Whā", "Rima", "Wiremu (Bill)"))
+
+
+# Plot study site 
+mybasemap <- ggplot() +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,200), ylim=c(-70,-30)) +
+  theme_bw()
+
+
+
+# Plot static imagery + points + paths
+mymap.paths <- ggplot() + 
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,200), ylim=c(-70,-30)) +
+  theme_bw() +
+  geom_point(data = NZ_2020_ssm, aes(x = lon, y = lat, colour = whale_ID), size=6) + 
+  geom_path(data = NZ_2020_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), size=1.1) +
+  guides(color = guide_legend(override.aes = list(size = 10)))+
+  labs(x = "Longitude", y = "Latitude") +
+  #scale_colour_manual(name = "whale ID",
+  #                    # Adjust the number of values for how many animals you have
+  #                    values = c("red", "blue", "purple", "green", "orange"), 
+  #                    # Enough breaks for every animal in the data set
+  #                    breaks = unique(OZ_2022_ssm$PTT)) + 
+  theme(legend.position = "bottom",
+        legend.title=element_text(size=25),
+        legend.text=element_text(size=25),
+        axis.title = element_text(size = 20),
+        plot.title = element_text(size = 30)) 
+
+# Static plot
+mymap.paths
+
+
+# Update plot to animate. 
+#I used 'transition_reveal' so that the path builds from the beginning to the end. 
+#Use 'transition_states' to show only one point at a time
+path.animate.plot <- mymap.paths +
+  transition_reveal(along = date) + #date_time
+  labs(title = 'Date: {frame_along}', size=20)  # Add a label on top to say what date each frame is
+##doesn't seem to plot every unique date and time combo... maybe try plotting by date only...?
+
+
+# To display the animation, use `animate`.
+# When using your own data, adjust frames per second (fps) to be as fast or slow as you like.
+# Be patient at this stage! It will eventually render in your plotting window
+animate(path.animate.plot,
+        height = 800, width =1200,
+        fps = 5, # frames per second #3
+        nframes = 300,  # default is 100 frames
+        renderer = gifski_renderer()) ##this is needed for the export to work
+##using settings along = date_time, fps = 1, and nframes = 4176 causes rendering to take a really long time, also
+#not useful as very little movement in 3h -- better to use day and not date time
+
+
+anim_save("example.gif")
+
+
+#save as images instead of gif
+animate(path.animate.plot,
+        height = 800, width =1200,
+        fps = 1, # frames per second 
+        nframes = 300,
+        renderer = file_renderer(dir = "animation images",
+                                 prefix = "plot2_"))
+#if gifski is loaded then automatically renders a gif not pngs
+#then try to use https://clideo.com/editor/video-maker to join pngs into mp4
+
+
+
+
+##############################################################################
+
+#NZ tracks 
+#start with 2022
+
+# Read the csv file to animate tracks from
+# use SSM version as they are tidier 
+#file has been edited a bit, add column for PTT
+NZ_2022_ssm <- read_csv(here::here('track animation','data', "NZ_2022_ssm_mp_normalised in each track_20230713.csv"))
+NZ_2022_ssm <- as.data.frame(NZ_2022_ssm)
+
+NZ_2022_ssm$PTT <- as.factor(NZ_2022_ssm$PTT)
+NZ_2022_ssm <- NZ_2022_ssm %>% 
+  mutate(date = as_date(date_time)) 
+NZ_2022_ssm <- NZ_2022_ssm %>% 
+  dplyr::rename(whale_ID = PTT) 
+
+NZ_2022_ssm <- NZ_2022_ssm %>%  
+  mutate(lon = ifelse(lon <0, 360-lon*-1, lon))
+
+NZ_2022_ssm <- NZ_2022_ssm %>% mutate(
+  whale_ID = case_when(
+    whale_ID == 197853 ~ "Rua tekau mā rua",
+    whale_ID == 208742 ~ "Rua tekau mā whā",
+    whale_ID == 235399 ~ "Rua tekau mā toru",
+    whale_ID == 235400 ~ "Tekau mā whitu (Muzza)",
+    whale_ID == 235401 ~ "Rua tekau",
+    whale_ID == 235402 ~ "Tekau mā iwa",
+    whale_ID == 235403 ~ "Tekau mā waru",
+    whale_ID == 235404 ~ "Rua tekau mā tahi"))
+
+NZ_2022_ssm$whale_ID <- factor(NZ_2022_ssm$whale_ID, 
+                               levels=c("Tekau mā whitu (Muzza)", "Tekau mā waru", "Tekau mā iwa", "Rua tekau",
+                                        "Rua tekau mā tahi", "Rua tekau mā rua", "Rua tekau mā toru", "Rua tekau mā whā"))
+
+
+# Plot study site 
+mybasemap <- ggplot() +
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,200), ylim=c(-70,-30)) +
+  theme_bw()
+
+
+
+# Plot static imagery + points + paths
+mymap.paths <- ggplot() + 
+  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
+  coord_equal() + 
+  coord_fixed(xlim=c(80,200), ylim=c(-70,-30)) +
+  theme_bw() +
+  geom_point(data = NZ_2022_ssm, aes(x = lon, y = lat, colour = whale_ID), size=6) + 
+  geom_path(data = NZ_2022_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), size=1.1) +
+  guides(color = guide_legend(override.aes = list(size = 10),nrow=3, byrow=TRUE))+
+  labs(x = "Longitude", y = "Latitude") +
+  #scale_colour_manual(name = "whale ID",
+  #                    # Adjust the number of values for how many animals you have
+  #                    values = c("red", "blue", "purple", "green", "orange"), 
+  #                    # Enough breaks for every animal in the data set
+  #                    breaks = unique(OZ_2022_ssm$PTT)) + 
+  theme(legend.position = "bottom",
+        legend.title=element_text(size=25),
+        legend.text=element_text(size=25),
+        axis.title = element_text(size = 20),
+        plot.title = element_text(size = 30)) 
+
+# Static plot
+mymap.paths
+
+
+# Update plot to animate. 
+#I used 'transition_reveal' so that the path builds from the beginning to the end. 
+#Use 'transition_states' to show only one point at a time
+path.animate.plot <- mymap.paths +
+  transition_reveal(along = date) + #date_time
+  labs(title = 'Date: {frame_along}', size=20)  # Add a label on top to say what date each frame is
+##doesn't seem to plot every unique date and time combo... maybe try plotting by date only...?
+
+
+# To display the animation, use `animate`.
+# When using your own data, adjust frames per second (fps) to be as fast or slow as you like.
+# Be patient at this stage! It will eventually render in your plotting window
+animate(path.animate.plot,
+        height = 800, width =1200,
+        fps = 5, # frames per second #3
+        nframes = 300,  # default is 100 frames
+        renderer = gifski_renderer()) ##this is needed for the export to work
+##using settings along = date_time, fps = 1, and nframes = 4176 causes rendering to take a really long time, also
+#not useful as very little movement in 3h -- better to use day and not date time
+
+
+anim_save("example.gif")
+
+
+#save as images instead of gif
+animate(path.animate.plot,
+        height = 800, width =1200,
+        fps = 1, # frames per second 
+        nframes = 300,
+        renderer = file_renderer(dir = "animation images",
+                                 prefix = "plot2_"))
+#if gifski is loaded then automatically renders a gif not pngs
+#then try to use https://clideo.com/editor/video-maker to join pngs into mp4
+
+
+
+
+
+
+
+
+
+
+
+
