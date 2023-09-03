@@ -194,7 +194,7 @@ ggplot(time_diff_hours_df, aes(time_diff_hours)) +
 #Segment tracks
 
 trackseg_argos_df <- ddply(time_diff_hours_df, ~id, function(d){
-  ind <- which(d$time_diff_hours > 24)
+  ind <- which(d$time_diff_hours > 36) ##test 24h, 36h...?
   d$mark <- 0
   d$mark[ind] <- 1
   d$track_seg <- cumsum(d$mark)
@@ -215,7 +215,7 @@ trackseg_argos_df <- trackseg_argos_df %>% group_by(track_id)
 trackseg_argos_df_filt <- filter(trackseg_argos_df, n() >= min_obs)
 
 table(trackseg_argos_df_filt$track_id)
-length(unique(trackseg_argos_df_filt$track_id)) # 60 if track segment <20 removed
+length(unique(trackseg_argos_df_filt$track_id)) # depends on time step and length chosen
 
 
 
@@ -241,7 +241,7 @@ ssm_tdiff_hours_df <- ddply(ssm_df, ~track_id, function(d){
 mts <- aggregate(time_diff_hours~ track_id, ssm_tdiff_hours_df, mean)
 mts 
 
-mean(mts$time_diff_hours) # 2.73 hrs for overall --- this is taking mean of a mean
+mean(mts$time_diff_hours) # this is taking mean of a mean, value depnds on time step and short track length chosen
 
 #by annual cohort
 time_diff_summary <- ssm_tdiff_hours_df %>% 
@@ -270,8 +270,29 @@ ssm_df <- ssm_df %>%
 
 #speed filter threshold (vmax) of 5 ms−1
 fit_ssm_12h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
-## actually this shouldn't work as model=mp should be only for running one track at a time
+## actually this shouldn't work as model=mp should be only for running one track at a time?
+#Gin says that it works
+#if try to run on NZ 2020, 2021 and 2022 data, 36h gap, 20 locs is short, 12h ssm time step: has warning messages.
+#try to identify which track causes the fail? 
+  # View(fit_ssm_12h_model_mp_NZ_all)
+  #those that have converged == FALSE: 215262-1, 215262-14, 235399-4, 46635-1
+  # pdHess == FALSE: 215262-14, 46635-1 --- both are from 2021 cohort
+fit_ssm_12h_model_mp_NZ_all_p <-  fit_ssm_12h_model_mp_NZ_all %>%  grab(what="p") 
+  # --> logit_g.se == NA: 235399-4
+## test mapping this particular out in QGIS
+#write_csv(fit_ssm_12h_model_mp_NZ_all_p,here::here('SSM', 'data', 'ssm_mpm_together_all_NZ_gap36h_short20loc_20230904.csv'))
+fit_ssm_12h_model_mp_NZ_all_p_groupnormalised <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p",normalise = TRUE, group = TRUE)
+#write_csv(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised,here::here('SSM', 'data', 'ssm_mpm_together_all_NZ_gap36h_short20loc_GROUPNORMALISED_20230904.csv'))
+#######here should first add other columsn: PTT, year, month...
 
+##would there be lots more warnings if used 6hr ssm?
+fit_ssm_6h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0))
+#runs but has some warnings
+#View(fit_ssm_6h_model_mp_NZ_all)
+#those that have converged == FALSE: 215259-1, 215262-1, 215262-11, 215262-14, 235399-4, 46635-1 -- mostly the same, 215259 is new
+#pdHess == FALSE: 215259-1, 215262-11, 215262-14 -some chanh=ges
+fit_ssm_6h_model_mp_NZ_all_p <-  fit_ssm_6h_model_mp_NZ_all %>%  grab(what="p") 
+# --> logit_g.se == NA: 215262-1, 235399-4, 235400-0 -- more so 6hr not great
 
 
 # Xuelei's method steps
