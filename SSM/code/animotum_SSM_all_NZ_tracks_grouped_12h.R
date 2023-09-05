@@ -142,6 +142,9 @@ raw_argos_df <- raw_argos_df %>%
   mutate(lon = ifelse(Longitude <0, 360-Longitude*-1, Longitude))
 
 
+#remove the poor quality locations
+raw_argos_df <- raw_argos_df %>% 
+  filter (lc != "Z")
 
 # SDA filter - leave this to fit_ssm
 
@@ -206,11 +209,11 @@ trackseg_argos_df$track_id <- paste(trackseg_argos_df$id, "-", trackseg_argos_df
 
 table(trackseg_argos_df$track_id)
 
-length(unique(trackseg_argos_df$track_id)) #123
+length(unique(trackseg_argos_df$track_id)) 
 
 
 # remove short track segs, test n <20 
-min_obs <- 20 ## set the number of minimum obs acceptable
+min_obs <- 25 ## set the number of minimum obs acceptable
 trackseg_argos_df <- trackseg_argos_df %>% group_by(track_id)
 trackseg_argos_df_filt <- filter(trackseg_argos_df, n() >= min_obs)
 
@@ -226,9 +229,7 @@ length(unique(trackseg_argos_df_filt$track_id)) # depends on time step and lengt
 
 ssm_df <- trackseg_argos_df_filt
 
-#remove the poor quality locations
-ssm_df <- ssm_df %>% 
-  filter (lc != "Z")
+
 
 
 ssm_tdiff_hours_df <- ddply(ssm_df, ~track_id, function(d){
@@ -272,20 +273,46 @@ ssm_df <- ssm_df %>%
 fit_ssm_12h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
 ## actually this shouldn't work as model=mp should be only for running one track at a time?
 #Gin says that it works
+
 #if try to run on NZ 2020, 2021 and 2022 data, 36h gap, 20 locs is short, 12h ssm time step: has warning messages.
 #try to identify which track causes the fail? 
   # View(fit_ssm_12h_model_mp_NZ_all)
   #those that have converged == FALSE: 215262-1, 215262-14, 235399-4, 46635-1
   # pdHess == FALSE: 215262-14, 46635-1 --- both are from 2021 cohort
+
+##otherwise same but lc == Z got filtered out before track segmentation
+## has some warning messages (including add the following argument: map = list(psi = factor(NA)))
+#those that have converged == FALSE: 215262-1, 215262-14, 235399-4, 46635-1 -- same as before
+# pdHess == FALSE: 215262-14, 46635-1 -- same as before
+
+## if lc==Z filtered out early, gap = 48h, short track is 25 loc
+#those that have converged == FALSE: 215262-1, 215262-12, 215262-14
+# pdHess == FALSE: 215262-12
+
+
 fit_ssm_12h_model_mp_NZ_all_p <-  fit_ssm_12h_model_mp_NZ_all %>%  grab(what="p") 
   # --> logit_g.se == NA: 235399-4
+
+##otherwise same but lc == Z got filtered out before trck segmentation
+# --> logit_g.se == NA: 235399-4 -- same as before
+
+## if lc==Z filtered out early, gap = 48h, short track is 25 loc
+# --> logit_g.se == NA: NONE
+
+
 ## test mapping this particular out in QGIS
 #write_csv(fit_ssm_12h_model_mp_NZ_all_p,here::here('SSM', 'data', 'ssm_mpm_together_all_NZ_gap36h_short20loc_20230904.csv'))
+
 fit_ssm_12h_model_mp_NZ_all_p_groupnormalised <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p",normalise = TRUE, group = TRUE)
 #write_csv(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised,here::here('SSM', 'data', 'ssm_mpm_together_all_NZ_gap36h_short20loc_GROUPNORMALISED_20230904.csv'))
 #######here should first add other columsn: PTT, year, month...
 
-##would there be lots more warnings if used 6hr ssm?
+
+
+
+
+
+##would there be lots more warnings if used 6hr ssm? this was done on the older data, lc==Z removed later in process
 fit_ssm_6h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0))
 #runs but has some warnings
 #View(fit_ssm_6h_model_mp_NZ_all)
