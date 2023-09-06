@@ -570,7 +570,7 @@ fit_ssm_12h_model_mp_OZ_p_v2 <- fit_ssm_12h_model_mp_OZ_p %>%
   select(-leftovers) %>% 
   mutate(Year = lubridate::year(date)) %>% 
   mutate(Month = month(date))  
-fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$cohort <- 2022
+fit_ssm_12h_model_mp_OZ_p_v2$cohort <- 2022
 
 ## save and map in QGIS
 #write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_20230906.csv'))
@@ -580,6 +580,12 @@ summary(fit_ssm_12h_model_mp_OZ_p_v2$g)
 
 
 
+
+
+joined_NZ_and_OZ <- rbind(fit_ssm_12h_model_mp_NZ_all_p_v2, fit_ssm_12h_model_mp_OZ_p_v2)
+summary(joined_NZ_and_OZ$g)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.0109  0.7838  0.8831  0.8481  0.9460  1.0000 
 
 
 
