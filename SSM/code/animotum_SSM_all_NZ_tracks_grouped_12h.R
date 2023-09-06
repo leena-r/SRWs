@@ -1,4 +1,4 @@
-#run SSM on NZ tracks -- all tracks in one go, 12h time step
+#run SSM on NZ tracks -- all tracks in one go using fit_smm(model=mp), 12h time step
 
 
 ################################
@@ -142,9 +142,12 @@ raw_argos_df <- raw_argos_df %>%
   mutate(lon = ifelse(Longitude <0, 360-Longitude*-1, Longitude))
 
 
-#remove the poor quality locations
+#remove the poor quality locations -- doesn't really matter if do this here or later, but jsut do it here
 raw_argos_df <- raw_argos_df %>% 
   filter (lc != "Z")
+
+
+################################################################
 
 # SDA filter - leave this to fit_ssm
 
@@ -166,19 +169,6 @@ time_diff_hours_df <- ddply(raw_argos_df, ~id, function(d){
   return(d)
 })
 
-# mean time difference between locations (in hours)
-
-mts <- aggregate(time_diff_hours~id, time_diff_hours_df, mean)
-mts #this is the mean time step
-
-mxts <- aggregate(time_diff_hours~id, time_diff_hours_df, max)
-mxts# this is the max time step
-
-mnts <- aggregate(time_diff_hours~id, time_diff_hours_df, min)
-mnts # this is the minimum time step
-
-mets <- aggregate(time_diff_hours~id, time_diff_hours_df, median)
-mets # this is the median time step
 
 
 ggplot(time_diff_hours_df, aes(time_diff_hours)) + 
@@ -197,7 +187,7 @@ ggplot(time_diff_hours_df, aes(time_diff_hours)) +
 #Segment tracks
 
 trackseg_argos_df <- ddply(time_diff_hours_df, ~id, function(d){
-  ind <- which(d$time_diff_hours > 36) ##test 24h, 36h...?
+  ind <- which(d$time_diff_hours > 36) 
   d$mark <- 0
   d$mark[ind] <- 1
   d$track_seg <- cumsum(d$mark)
@@ -212,7 +202,7 @@ table(trackseg_argos_df$track_id)
 length(unique(trackseg_argos_df$track_id)) 
 
 
-# remove short track segs, test n <20 
+# remove short track segs, test n <25 
 min_obs <- 25 ## set the number of minimum obs acceptable
 trackseg_argos_df <- trackseg_argos_df %>% group_by(track_id)
 trackseg_argos_df_filt <- filter(trackseg_argos_df, n() >= min_obs)
@@ -230,28 +220,6 @@ length(unique(trackseg_argos_df_filt$track_id)) # depends on time step and lengt
 ssm_df <- trackseg_argos_df_filt
 
 
-
-
-ssm_tdiff_hours_df <- ddply(ssm_df, ~track_id, function(d){
-  d$time_diff_hours <- NA
-  for (i in 2:nrow(d)){
-    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
-  return(d)
-})
-
-mts <- aggregate(time_diff_hours~ track_id, ssm_tdiff_hours_df, mean)
-mts 
-
-mean(mts$time_diff_hours) # this is taking mean of a mean, value depnds on time step and short track length chosen
-
-#by annual cohort
-time_diff_summary <- ssm_tdiff_hours_df %>% 
-  group_by(cohort) %>% #, track_id
-  summarise(first=quantile(time_diff_hours,probs=0.25, na.rm = TRUE),
-            second=quantile(time_diff_hours,probs=0.5, na.rm = TRUE),
-            third=quantile(time_diff_hours,probs=0.75, na.rm = TRUE),
-            mean = mean(time_diff_hours, na.rm = TRUE))
-
 #now structure the data frame so it matches the required structure for SSM
 #keep but rename error ellipse variables
 ssm_df <- ssm_df %>% 
@@ -261,191 +229,354 @@ ssm_df <- ssm_df %>%
                 smin = `Error Semi-minor axis`, 
                 eor = `Error Ellipse orientation`)
 
-#write_rds(ssm_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230830.rds'))
 
 
 ################################################################
 
-#read in file ready for ssm
-#ssm_df <- read_rds(here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230711.rds'))
+
+#NZ 2020, 2021 and 2022 data, 36h gap, 25 locs is short track, 12h ssm time step: 
 
 #speed filter threshold (vmax) of 5 ms−1
 fit_ssm_12h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
-## actually this shouldn't work as model=mp should be only for running one track at a time?
-#Gin says that it works
+## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
+#but it does work on grouped data
 
-#if try to run on NZ 2020, 2021 and 2022 data, 36h gap, 20 locs is short, 12h ssm time step: has warning messages.
-#try to identify which track causes the fail? 
-  # View(fit_ssm_12h_model_mp_NZ_all)
-  #those that have converged == FALSE: 215262-1, 215262-14, 235399-4, 46635-1
-  # pdHess == FALSE: 215262-14, 46635-1 --- both are from 2021 cohort
+##couple warnings:
+# Warning messages:
+# 1: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+#   `map = list(psi = factor(NA))` 
+# 2: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+#   `map = list(psi = factor(NA))` 
+# 3: The optimiser failed. Try simplifying the model with the following argument: 
+#   `map = list(psi = factor(NA))` 
+# 4: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+#   `map = list(psi = factor(NA))` 
+# 5: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+# 6: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+#   `map = list(psi = factor(NA))` 
 
-##otherwise same but lc == Z got filtered out before track segmentation
-## has some warning messages (including add the following argument: map = list(psi = factor(NA)))
-#those that have converged == FALSE: 215262-1, 215262-14, 235399-4, 46635-1 -- same as before
-# pdHess == FALSE: 215262-14, 46635-1 -- same as before
-
-## if lc==Z filtered out early, gap = 48h, short track is 25 loc
-#those that have converged == FALSE: 215262-1, 215262-12, 215262-14
-# pdHess == FALSE: 215262-12
-
-
-fit_ssm_12h_model_mp_NZ_all_p <-  fit_ssm_12h_model_mp_NZ_all %>%  grab(what="p") 
-  # --> logit_g.se == NA: 235399-4
-
-##otherwise same but lc == Z got filtered out before trck segmentation
-# --> logit_g.se == NA: 235399-4 -- same as before
-
-## if lc==Z filtered out early, gap = 48h, short track is 25 loc
+# View(fit_ssm_12h_model_mp_NZ_all)
+#those that have converged == FALSE: 215262-1, 215262-14
+# pdHess == FALSE: 215262-14
+  
+fit_ssm_12h_model_mp_NZ_all_p_groupnormalised <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p",normalise = TRUE, group = TRUE)
 # --> logit_g.se == NA: NONE
 
 
-## test mapping this particular out in QGIS
-#write_csv(fit_ssm_12h_model_mp_NZ_all_p,here::here('SSM', 'data', 'ssm_mpm_together_all_NZ_gap36h_short20loc_20230904.csv'))
+#add other columns to data: PTT, year, month, tagging cohort...
+fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2 <- fit_ssm_12h_model_mp_NZ_all_p_groupnormalised %>% 
+  mutate(PTT = id) %>% 
+  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+  select(-leftovers) %>% 
+  mutate(Year = lubridate::year(date)) %>% 
+  mutate(Month = month(date)) %>% 
+  mutate(cohort = case_when(PTT %in%  c("203571", "203572", "203573", "203574", "203575", "205015")  ~ "NZ 2020",
+                            PTT %in%  c("46633", "46635", "46950", "46955", "212499", "212500", 
+                                      "215258" , "215259" , "215261" , "215262", "215263")  ~ "NZ 2021",
+                            PTT %in%  c("197853", "208742", "235399", "235400", 
+                                      "235401" , "235402" , "235403" , "235404")  ~ "NZ 2022"))   
 
-fit_ssm_12h_model_mp_NZ_all_p_groupnormalised <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p",normalise = TRUE, group = TRUE)
-#write_csv(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised,here::here('SSM', 'data', 'ssm_mpm_together_all_NZ_gap36h_short20loc_GROUPNORMALISED_20230904.csv'))
-#######here should first add other columsn: PTT, year, month...
+## save and map in QGIS
+#write_csv(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20230906.csv'))
+
+
+summary(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2$g)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.0000  0.7906  0.8885  0.8519  0.9492  1.0000 
+
+
+### 
+### same model but don't normalise ### 
+fit_ssm_12h_model_mp_NZ_all_p <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p")
+# --> logit_g.se == NA: NONE
+#add other columns to data: PTT, year, month, tagging cohort...
+fit_ssm_12h_model_mp_NZ_all_p_v2 <- fit_ssm_12h_model_mp_NZ_all_p %>% 
+  mutate(PTT = id) %>% 
+  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+  select(-leftovers) %>% 
+  mutate(Year = lubridate::year(date)) %>% 
+  mutate(Month = month(date)) %>% 
+  mutate(cohort = case_when(PTT %in%  c("203571", "203572", "203573", "203574", "203575", "205015")  ~ "NZ 2020",
+                            PTT %in%  c("46633", "46635", "46950", "46955", "212499", "212500", 
+                                        "215258" , "215259" , "215261" , "215262", "215263")  ~ "NZ 2021",
+                            PTT %in%  c("197853", "208742", "235399", "235400", 
+                                        "235401" , "235402" , "235403" , "235404")  ~ "NZ 2022"))   
+## save and map in QGIS
+#write_csv(fit_ssm_12h_model_mp_NZ_all_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20230906.csv'))
+summary(fit_ssm_12h_model_mp_NZ_all_p_v2$g)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.0109  0.7929  0.8897  0.8535  0.9498  1.0000 
 
 
 
 
 
 
-##would there be lots more warnings if used 6hr ssm? this was done on the older data, lc==Z removed later in process
+
+##would there be lots more warnings if used 6hr ssm? 
 fit_ssm_6h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0))
 #runs but has some warnings
-#View(fit_ssm_6h_model_mp_NZ_all)
-#those that have converged == FALSE: 215259-1, 215262-1, 215262-11, 215262-14, 235399-4, 46635-1 -- mostly the same, 215259 is new
-#pdHess == FALSE: 215259-1, 215262-11, 215262-14 -some chanh=ges
-fit_ssm_6h_model_mp_NZ_all_p <-  fit_ssm_6h_model_mp_NZ_all %>%  grab(what="p") 
-# --> logit_g.se == NA: 215262-1, 235399-4, 235400-0 -- more so 6hr not great
-
-
-# Xuelei's method steps
-fit_ssm_NZ_all_12h <- fit_ssm(ssm_df,vmax = 25,model="crw",time.step = 12,control = ssm_control(verbose=0))
-print(fit_ssm_NZ_all_12h)
-ssm_NZ_all_12h_df <- grab(x=fit_ssm_NZ_all_12h,what = "p")
-#aniMotum::map(fit_ssm_NZ_all_12h,what = "predicted",by.date=F,aes = aes_lst(mp=FALSE,fill=c("dodgerblue", "dodgerblue", NA, "orange", "grey60", NA),conf = F,date_pal = hcl.colors(100, palette = "Viridis", rev = FALSE)))
-
-
-# move persistence model 
-mpm_NZ_all_12h <- fit_mpm(fit_ssm_NZ_all_12h,model="mpm",control = mpm_control(verbose = 0))
-mpm_NZ_all_12h
-mpm_NZ_all_12h_df <- grab(x=mpm_NZ_all_12h,what = "f") 
-#plot(mpm_NZ_all_12h, control = mpm_control(verbose=0),ask=F)
-
-
-ssm_mpm_NZ_all_12h <- left_join(ssm_NZ_all_12h_df, mpm_NZ_all_12h_df, by=c('id','date'))
-
-ggplot(ssm_mpm_NZ_all_12h, aes(lon, lat)) +
-  geom_point(size=1, aes(col = g)) +
-  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
-  coord_equal() + 
-  coord_fixed(xlim=c(80,200), ylim=c(-70,-40))+
-  theme_bw()+
-  theme(panel.grid=element_blank())+
-  sc
-ggplotly()
-
-
-
-## unsure if the full dataset work together
-#try 2021 separately
-
-#read in file ready for ssm
-#ssm_df <- read_rds(here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_ssm_df_20230711.rds'))
-ssm_2021_df <- ssm_df %>% filter(cohort==2021)
-
-
-# Xuelei's method steps
-fit_ssm_NZ_2021_12h <- fit_ssm(ssm_2021_df, vmax=25, model="crw", time.step=12, control = ssm_control(verbose=0),map = list(psi = factor(NA))) 
-#no complaints
-print(fit_ssm_NZ_2021_12h)
-ssm_NZ_2021_12h_df <- grab(x=fit_ssm_NZ_2021_12h,what = "p")
-#aniMotum::map(fit_ssm_NZ_2021_12h,what = "predicted",by.date=F,aes = aes_lst(mp=FALSE,fill=c("dodgerblue", "dodgerblue", NA, "orange", "grey60", NA),conf = F,date_pal = hcl.colors(100, palette = "Viridis", rev = FALSE)))
-
-
-# move persistence model 
-mpm_NZ_2021_12h <- fit_mpm(fit_ssm_NZ_2021_12h,model="mpm",control = mpm_control(verbose = 0))
-#some complaints 
 # Warning messages:
-# 1: In sqrt(diag(object$cov.fixed)) : NaNs produced
-# 2: In sqrt(diag(object$cov.fixed)) : NaNs produced
-mpm_NZ_2021_12h
-mpm_NZ_2021_12h_df <- grab(x=mpm_NZ_2021_12h,what = "f") 
-#plot(mpm_NZ_2021_12h, control = mpm_control(verbose=0),ask=F)
-
-
-ssm_mpm_NZ_2021_12h <- left_join(ssm_NZ_2021_12h_df, mpm_NZ_2021_12h_df, by=c('id','date'))
-
-ggplot(ssm_mpm_NZ_2021_12h, aes(lon, lat)) +
-  geom_point(size=1, aes(col = g)) +
-  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
-  coord_equal() + 
-  coord_fixed(xlim=c(80,200), ylim=c(-70,-40))+
-  theme_bw()+
-  theme(panel.grid=element_blank())+
-  sc
-ggplotly()
-
+# 1: The optimiser failed. Try simplifying the model with the following argument: 
+#   `map = list(psi = factor(NA))` 
+# 2: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+#   `map = list(psi = factor(NA))` 
+# 3: The optimiser failed. Try simplifying the model with the following argument: 
+#   `map = list(psi = factor(NA))` 
+# 4: The optimiser failed. Try simplifying the model with the following argument: 
+#   `map = list(psi = factor(NA))` 
+# 5: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+# 6: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+#   `map = list(psi = factor(NA))` 
+#View(fit_ssm_6h_model_mp_NZ_all)
+#those that have converged == FALSE: 215259-1, 215262-1, 215262-11, 215262-14
+#pdHess == FALSE: 215259-1, 215262-11 
+fit_ssm_6h_model_mp_NZ_all_p <-  fit_ssm_6h_model_mp_NZ_all %>%  grab(what="p") 
+# --> logit_g.se == NA: 215262-1, 235400-0 -- more so 6hr not great
 
 
 
-### the one that went east
-#comparing sunning ssm and mp separately vs together
+###################
+##as a test comparison, run few thracls individually with fit_ssm(model=mp) and compare
+#compare using the non-normalised data
+test_203571_0 <- ssm_df %>% filter(id == "203571-0")
+fit_ssm_12h_model_mp_test_203571_0 <- fit_ssm(test_203571_0, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+fit_ssm_12h_model_mp_test_203571_0_p <-  fit_ssm_12h_model_mp_test_203571_0 %>% grab(what="p")
+#write_csv(fit_ssm_12h_model_mp_test_203571_0_p,here::here('SSM', 'data', 'ssm_mpm_203571_0.csv'))
+#-- g values are same as in group run
 
-id_46950_0 <- ssm_df %>% filter(id == "46950-0")
-
-# Xuelei's method steps
-fit_ssm_46950_12h <- fit_ssm(id_46950_0, vmax=25, model="crw", time.step=12, control = ssm_control(verbose=0),map = list(psi = factor(NA))) 
-#no complaints
-print(fit_ssm_46950_12h)
-ssm_fit_ssm_46950_12h_df <- grab(x=fit_ssm_46950_12h,what = "p")
-#aniMotum::map(fit_ssm_46950_12h,what = "predicted",by.date=F,aes = aes_lst(mp=FALSE,fill=c("dodgerblue", "dodgerblue", NA, "orange", "grey60", NA),conf = F,date_pal = hcl.colors(100, palette = "Viridis", rev = FALSE)))
-
-
-# move persistence model 
-mpm_46950_12h <- fit_mpm(fit_ssm_46950_12h,model="mpm",control = mpm_control(verbose = 0))
-mpm_46950_12h
-mpm_46950_12h_df <- grab(x=mpm_46950_12h,what = "f") 
-#plot(mpm_46950_12h, control = mpm_control(verbose=0),ask=F)
+test_203571_1 <- ssm_df %>% filter(id == "203571-1")
+fit_ssm_12h_model_mp_test_203571_1 <- fit_ssm(test_203571_1, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+fit_ssm_12h_model_mp_test_203571_1_p <-  fit_ssm_12h_model_mp_test_203571_1 %>% grab(what="p")
+#write_csv(fit_ssm_12h_model_mp_test_203571_1_p,here::here('SSM', 'data', 'ssm_mpm_203571_1.csv'))
 
 
-ssm_mpm_separate_46950_12h <- left_join(ssm_fit_ssm_46950_12h_df, mpm_46950_12h_df, by=c('id','date'))
+test_215262_14 <- ssm_df %>% filter(id == "215262-14")
+fit_ssm_12h_model_mp_test_215262_14 <- fit_ssm(test_215262_14, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+# Warning message:
+#   The optimiser failed. Try simplifying the model with the following argument: 
+#   `map = list(psi = factor(NA))` 
+fit_ssm_12h_model_mp_test_215262_14_p <-  fit_ssm_12h_model_mp_test_215262_14 %>% grab(what="p")
+#Error in x$ssm[[1]] : subscript out of bounds
+#doesn't run on its own, has issues --> it actually doesn't run in the group one either
 
-ssm_mpm_separate_46950_12h <- ssm_mpm_separate_46950_12h %>% rename(g_separate = g) %>% 
-  mutate(mode = case_when(g_separate < quantile(g_separate, probs = 0.25)   ~ "ARS",
-                          g_separate >= quantile(g_separate, probs = 0.25)  ~ "transit")) 
-#write_csv(ssm_mpm_separate_46950_12h,here::here('SSM', 'data', 'ssm_mpm_separate_46950_12h.csv'))
+test_215262_10 <- ssm_df %>% filter(id == "215262-10")
+fit_ssm_12h_model_mp_test_215262_10 <- fit_ssm(test_215262_10, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>% grab(what="p")
+#write_csv(fit_ssm_12h_model_mp_test_215262_10_p,here::here('SSM', 'data', 'ssm_mpm_215262_10.csv'))
+#-- g values are same as in group run
 
 
-##mp as part of ssm
+
+#########################################################################################
+##run model on OZ tracks 
+
+###########
+#combine OZ data into one master file
+#note that couple of the tags are still transmitting
+
+# ##OZ 2022
+# Ptt235405_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235405', "235405-Locations.csv"))
+# Ptt235406_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235406', "235406-Locations.csv"))
+# Ptt235407_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235407', "235407-Locations.csv"))
+# Ptt235408_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235408', "235408-Locations.csv"))
+# Ptt235409_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235409', "235409-Locations.csv"))
+# Ptt235410_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235410', "235410-Locations.csv"))
+# Ptt235411_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235411', "235411-Locations.csv"))
+# Ptt235412_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235412', "235412-Locations.csv"))
+# Ptt235413_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235413', "235413-Locations.csv"))
+# Ptt235414_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235414', "235414-Locations.csv"))
+# Ptt235621_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235621', "235621-Locations.csv"))
+# Ptt235622_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235622', "235622-Locations.csv"))
+# 
+# Ptt235408_raw$Quality <- as.character(Ptt235408_raw$Quality) 
+# Ptt235409_raw$Quality <- as.character(Ptt235409_raw$Quality) 
+# 
+# all_ptt_OZ_2022 <- bind_rows(Ptt235405_raw, Ptt235406_raw, Ptt235407_raw, 
+#                              Ptt235408_raw, Ptt235409_raw, Ptt235410_raw,
+#                              Ptt235411_raw, Ptt235412_raw, Ptt235413_raw,
+#                              Ptt235414_raw, Ptt235621_raw, Ptt235622_raw)
+# 
+# #Only keep desired columns
+# all_ptt_OZ_2022 <- all_ptt_OZ_2022 %>% 
+#   select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+# 
+# 
+# all_ptt_OZ_2022 <- all_ptt_OZ_2022 %>% 
+#   mutate(DateTime_UTC = Date) %>%
+#   mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+#   select(-Date) %>%
+#   mutate(Date = as_date(DateTime_UTC)) 
+# 
+# all_ptt_OZ_2022$cohort <- 2022
+# 
+# #raw_argos_df <- rbind(all_ptt_2020,all_ptt_2021,all_ptt_2022)
+# 
+# #save combined OZ SRW data file - note that some tags still going
+# #write_rds(all_ptt_OZ_2022,here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20230713.rds'))
+
+
+################################################################
+
+
+#load in master data file
+raw_OZ_argos_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20230713.rds'))
+
+#change column names to match Xuelei code
+#also convert longitude from 0-180 to 0-360
+raw_OZ_argos_df <- raw_OZ_argos_df %>% 
+  dplyr::rename(id = Ptt,
+                lat = Latitude,
+                #lon = Longitude,
+                lc = Quality,
+                date = DateTime_UTC) %>% 
+  mutate(lon = ifelse(Longitude <0, 360-Longitude*-1, Longitude))
+
+
+#remove the poor quality locations -- doesn't really matter if do this here or later, but jsut do it here
+raw_OZ_argos_df <- raw_OZ_argos_df %>% 
+  filter (lc != "Z")
+
+
+################################################################
+
+# SDA filter - leave this to fit_ssm
+
+
+################################################################
+
+#remove duplicates - leave this to fit_ssm
+
+
+################################################################
+
+
+#Time difference between successive locations
+
+OZ_time_diff_hours_df <- ddply(raw_OZ_argos_df, ~id, function(d){
+  d$time_diff_hours <- NA
+  for (i in 2:nrow(d)){
+    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
+  return(d)
+})
+
+
+ggplot(OZ_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,100)) + 
+  xlab("Time difference between successive locations")
+
+ggplot(OZ_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,15)) + 
+  xlab("Time difference between successive locations")
+
+
+
+################################################################
+
+#Segment tracks
+
+OZ_trackseg_argos_df <- ddply(OZ_time_diff_hours_df, ~id, function(d){
+  ind <- which(d$time_diff_hours > 36)
+  d$mark <- 0
+  d$mark[ind] <- 1
+  d$track_seg <- cumsum(d$mark)
+  return(d)
+})
+
+# Now create a new id based on track segment
+OZ_trackseg_argos_df$track_id <- paste(OZ_trackseg_argos_df$id, "-", OZ_trackseg_argos_df$track_seg, sep="")
+
+table(OZ_trackseg_argos_df$track_id)
+
+length(unique(OZ_trackseg_argos_df$track_id)) #42
+
+
+# remove short track segs, test n <25 
+min_obs <- 25 ## set the number of minimum obs acceptable
+OZ_trackseg_argos_df <- OZ_trackseg_argos_df %>% group_by(track_id)
+OZ_trackseg_argos_df_filt <- filter(OZ_trackseg_argos_df, n() >= min_obs)
+
+table(OZ_trackseg_argos_df_filt$track_id)
+length(unique(OZ_trackseg_argos_df_filt$track_id)) 
+
+
+################################################################
+
+#SSM
+
+
+OZ_ssm_df <- OZ_trackseg_argos_df_filt
+
+
+#now structure the data frame so it matches the required structure for SSM
+#keep but rename error ellipse variables
+OZ_ssm_df <- OZ_ssm_df %>% 
+  select(track_id, date, lc, lon, lat, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`, cohort, time_diff_hours) %>% 
+  dplyr::rename(id = track_id, 
+                smaj = `Error Semi-major axis`, 
+                smin = `Error Semi-minor axis`, 
+                eor = `Error Ellipse orientation`)
+
+
+
+################################################################
+
+
+#OZ 2022 data, 36h gap, 25 locs is short track, 12h ssm time step: 
 
 #speed filter threshold (vmax) of 5 ms−1
-fit_ssm_with_model_mp_46950_12h <- fit_ssm(id_46950_0, vmax=25, model="mp", time.step=12, control = ssm_control(verbose=0)) %>% 
-  grab(what="p") 
-#plot(fit_ssm_with_model_mp_46950_12h, what = "predicted", type = 3, normalise = FALSE)
-ggplot(data.frame(fit_ssm_with_model_mp_46950_12h),aes(lon, lat)) +
-  geom_point(size=1, aes(col = g)) +
-  geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
-  coord_equal() + 
-  coord_fixed(xlim=c(80,180), ylim=c(-70,-40))+
-  theme_bw()+
-  theme(panel.grid=element_blank())+
-  sc
-ggplotly()
+fit_ssm_12h_model_mp_OZ <- fit_ssm(OZ_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
+#but it does work on grouped data
+
+##no warning messages 
+
+# View(fit_ssm_12h_model_mp_OZ)
+#those that have converged == FALSE: NONE
+# pdHess == FALSE: NONE
+
+fit_ssm_12h_model_mp_OZ_p_groupnormalised <-  fit_ssm_12h_model_mp_OZ %>% grab(what="p",normalise = TRUE, group = TRUE)
+# --> logit_g.se == NA: NONE
 
 
-#write_csv(fit_ssm_with_model_mp_46950_12h,here::here('SSM', 'data', 'fit_ssm_with_model_mp_46950_12h.csv'))
-fit_ssm_with_model_mp_46950_12h <- fit_ssm_with_model_mp_46950_12h %>% rename(g_ssm_mp_together = g) %>% 
-  mutate(mode = case_when(g_ssm_mp_together < quantile(g_ssm_mp_together, probs = 0.25)   ~ "ARS",
-                          g_ssm_mp_together >= quantile(g_ssm_mp_together, probs = 0.25)  ~ "transit"))
+#add other columns to data: PTT, year, month, tagging cohort...
+fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2 <- fit_ssm_12h_model_mp_OZ_p_groupnormalised %>% 
+  mutate(PTT = id) %>% 
+  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+  select(-leftovers) %>% 
+  mutate(Year = lubridate::year(date)) %>% 
+  mutate(Month = month(date)) 
+fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$cohort <- 2022
 
-test_join <- left_join(ssm_mpm_separate_46950_12h, fit_ssm_with_model_mp_46950_12h, by=c('id','date'))
+## save and map in QGIS
+#write_csv(fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_normalised_20230906.csv'))
 
 
+summary(fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$g)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.0000  0.7220  0.8440  0.8102  0.9230  1.0000 
 
+
+### 
+### same model but don't normalise ### 
+fit_ssm_12h_model_mp_OZ_p <-  fit_ssm_12h_model_mp_OZ %>% grab(what="p")
+# --> logit_g.se == NA: NONE
+#add other columns to data: PTT, year, month, tagging cohort...
+fit_ssm_12h_model_mp_OZ_p_v2 <- fit_ssm_12h_model_mp_OZ_p %>% 
+  mutate(PTT = id) %>% 
+  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+  select(-leftovers) %>% 
+  mutate(Year = lubridate::year(date)) %>% 
+  mutate(Month = month(date))  
+fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$cohort <- 2022
+
+## save and map in QGIS
+#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_20230906.csv'))
+summary(fit_ssm_12h_model_mp_OZ_p_v2$g)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.1181  0.7491  0.8557  0.8262  0.9248  0.9921  
 
 
 
