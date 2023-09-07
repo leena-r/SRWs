@@ -238,6 +238,7 @@ ssm_df <- ssm_df %>%
 
 #speed filter threshold (vmax) of 5 ms−1
 fit_ssm_12h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+#write_rds(fit_ssm_12h_model_mp_NZ_all,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_NZ_all_20230906.rds'))
 ## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
 #but it does work on grouped data
 
@@ -277,7 +278,7 @@ fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2 <- fit_ssm_12h_model_mp_NZ_all_
                                       "235401" , "235402" , "235403" , "235404")  ~ "NZ 2022"))   
 
 ## save and map in QGIS
-#write_csv(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20230906.csv'))
+#write_csv(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_normalised_20230906.csv'))
 
 
 summary(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2$g)
@@ -332,12 +333,12 @@ fit_ssm_6h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=6, co
 #those that have converged == FALSE: 215259-1, 215262-1, 215262-11, 215262-14
 #pdHess == FALSE: 215259-1, 215262-11 
 fit_ssm_6h_model_mp_NZ_all_p <-  fit_ssm_6h_model_mp_NZ_all %>%  grab(what="p") 
-# --> logit_g.se == NA: 215262-1, 235400-0 -- more so 6hr not great
+# --> logit_g.se == NA: 215262-1, 235400-0 -- more warnings, so 6hr not great
 
 
 
 ###################
-##as a test comparison, run few thracls individually with fit_ssm(model=mp) and compare
+##as a test comparison, run few tracks individually with fit_ssm(model=mp) and compare
 #compare using the non-normalised data
 test_203571_0 <- ssm_df %>% filter(id == "203571-0")
 fit_ssm_12h_model_mp_test_203571_0 <- fit_ssm(test_203571_0, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
