@@ -589,6 +589,419 @@ summary(joined_NZ_and_OZ$g)
 # 0.0109  0.7838  0.8831  0.8481  0.9460  1.0000 
 
 
+################################################################
+################################################################
+
+##load in Mackay et al 2020 datasets
+
+
+### HoB ######
+
+load("C:/Users/lrie0/Documents/SRW projects/SRWs/tag data/Mackay et al 2020 data/raw_argos_df_HoB.RData")
+glimpse(raw_argos_df_HoB)
+#write_csv(raw_argos_df_HoB,here::here('SSM', 'data', 'raw_argos_df_HoB.csv'))
+
+#column names are already what they should be, and data does not cross 180 meridian
+
+#remove the poor quality locations -- doesn't really matter if do this here or later, but jsut do it here
+raw_argos_df_HoB <- raw_argos_df_HoB %>% 
+  filter (lc != "Z")
+
+
+################################################################
+
+# SDA filter - leave this to fit_ssm
+
+
+################################################################
+
+#remove duplicates - leave this to fit_ssm
+
+
+################################################################
+
+
+#Time difference between successive locations
+
+HoB_time_diff_hours_df <- ddply(raw_argos_df_HoB, ~id, function(d){
+  d$time_diff_hours <- NA
+  for (i in 2:nrow(d)){
+    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
+  return(d)
+})
+
+
+
+ggplot(HoB_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,100)) + 
+  xlab("Time difference between successive locations")
+
+ggplot(HoB_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,15)) + 
+  xlab("Time difference between successive locations")
+
+
+################################################################
+
+#Segment tracks
+
+HoB_trackseg_argos_df <- ddply(HoB_time_diff_hours_df, ~id, function(d){
+  ind <- which(d$time_diff_hours > 36) 
+  d$mark <- 0
+  d$mark[ind] <- 1
+  d$track_seg <- cumsum(d$mark)
+  return(d)
+})
+
+# Now create a new id based on track segment
+HoB_trackseg_argos_df$track_id <- paste(HoB_trackseg_argos_df$id, "-", HoB_trackseg_argos_df$track_seg, sep="")
+
+table(HoB_trackseg_argos_df$track_id)
+
+length(unique(HoB_trackseg_argos_df$track_id)) 
+
+
+# remove short track segs, test n <25 
+min_obs <- 25 ## set the number of minimum obs acceptable
+HoB_trackseg_argos_df <- HoB_trackseg_argos_df %>% group_by(track_id)
+HoB_trackseg_argos_df_filt <- filter(HoB_trackseg_argos_df, n() >= min_obs)
+
+table(HoB_trackseg_argos_df_filt$track_id)
+length(unique(HoB_trackseg_argos_df_filt$track_id)) # depends on time step and length chosen
+
+
+
+################################################################
+
+#SSM
+
+
+HoB_ssm_df <- HoB_trackseg_argos_df_filt
+
+
+#now structure the data frame so it matches the required structure for SSM
+#this data did not have error ellipse variables
+HoB_ssm_df <- HoB_ssm_df %>% 
+  select(track_id, date, lc, lon, lat, time_diff_hours) %>% 
+  dplyr::rename(id = track_id)
+
+
+
+################################################################
+
+
+#HoB data, 36h gap, 25 locs is short track, 12h ssm time step: 
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_12h_model_mp_HoB<- fit_ssm(HoB_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+#write_rds(fit_ssm_12h_model_mp_HoB,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_HoB_20230911.rds'))
+
+##couple warnings:
+# Warning messages:
+# 1: Hessian was not positive-definite so some standard errors could not be calculated. 
+# 2: Hessian was not positive-definite so some standard errors could not be calculated. 
+# 3: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+# 4: Hessian was not positive-definite so some standard errors could not be calculated.
+
+# View(fit_ssm_12h_model_mp_HoB)
+#those that have converged == FALSE: 120944-1, 120949-1
+# pdHess == FALSE: NONE
+
+
+###  don't normalise ### 
+fit_ssm_12h_model_mp_HoB_p <-  fit_ssm_12h_model_mp_HoB %>% grab(what="p")
+# --> logit_g.se == NA: 120944-1
+#add other columns to data: PTT, year, month, tagging cohort...
+fit_ssm_12h_model_mp_HoB_p_v2 <- fit_ssm_12h_model_mp_HoB_p %>% 
+  mutate(PTT = id) %>% 
+  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+  select(-leftovers) %>% 
+  mutate(Year = lubridate::year(date)) %>% 
+  mutate(Month = month(date)) %>% 
+  mutate(cohort = "HoB 2014")   
+
+## save and map in QGIS
+#write_csv(fit_ssm_12h_model_mp_HoB_p_v2,here::here('SSM', 'data', 'ssm_mpm_HoB2014_SRW_20230911.csv'))
+summary(fit_ssm_12h_model_mp_HoB_p_v2$g)
+#   Min.  1st Qu.  Median   Mean 3rd Qu.    Max. 
+# 0.1059  0.6793  0.7910  0.7688  0.8984  1.0000 
+
+
+
+
+
+
+### TAS ######
+
+load("C:/Users/lrie0/Documents/SRW projects/SRWs/tag data/Mackay et al 2020 data/raw_argos_df_Tas.RData")
+glimpse(raw_argos_df_Tas)
+#write_csv(raw_argos_df_Tas,here::here('SSM', 'data', 'raw_argos_df_Tas.csv'))
+
+#column names are already what they should be, and data does not cross 180 meridian
+
+#remove the poor quality locations -- doesn't really matter if do this here or later, but jsut do it here
+raw_argos_df_Tas <- raw_argos_df_Tas %>% 
+  filter (lc != "Z")
+
+
+################################################################
+
+# SDA filter - leave this to fit_ssm
+
+
+################################################################
+
+#remove duplicates - leave this to fit_ssm
+
+
+################################################################
+
+
+#Time difference between successive locations
+
+TAS_time_diff_hours_df <- ddply(raw_argos_df_Tas, ~id, function(d){
+  d$time_diff_hours <- NA
+  for (i in 2:nrow(d)){
+    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
+  return(d)
+})
+
+
+
+ggplot(TAS_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,100)) + 
+  xlab("Time difference between successive locations")
+
+ggplot(TAS_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,15)) + 
+  xlab("Time difference between successive locations")
+
+
+################################################################
+
+#Segment tracks
+
+TAS_trackseg_argos_df <- ddply(TAS_time_diff_hours_df, ~id, function(d){
+  ind <- which(d$time_diff_hours > 36) 
+  d$mark <- 0
+  d$mark[ind] <- 1
+  d$track_seg <- cumsum(d$mark)
+  return(d)
+})
+
+# Now create a new id based on track segment
+TAS_trackseg_argos_df$track_id <- paste(TAS_trackseg_argos_df$id, "-", TAS_trackseg_argos_df$track_seg, sep="")
+
+table(TAS_trackseg_argos_df$track_id)
+
+length(unique(TAS_trackseg_argos_df$track_id)) 
+
+
+# remove short track segs, test n <25 
+min_obs <- 25 ## set the number of minimum obs acceptable
+TAS_trackseg_argos_df <- TAS_trackseg_argos_df %>% group_by(track_id)
+TAS_trackseg_argos_df_filt <- filter(TAS_trackseg_argos_df, n() >= min_obs)
+
+table(TAS_trackseg_argos_df_filt$track_id)
+length(unique(TAS_trackseg_argos_df_filt$track_id)) # depends on time step and length chosen
+
+
+
+################################################################
+
+#SSM
+
+
+TAS_ssm_df <- TAS_trackseg_argos_df_filt
+
+
+#now structure the data frame so it matches the required structure for SSM
+#this data did not have error ellipse variables
+TAS_ssm_df <- TAS_ssm_df %>% 
+  select(track_id, date, lc, lon, lat, time_diff_hours) %>% 
+  dplyr::rename(id = track_id)
+
+
+
+################################################################
+
+
+#TAS data, 36h gap, 25 locs is short track, 12h ssm time step: 
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_12h_model_mp_TAS <- fit_ssm(TAS_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+#write_rds(fit_ssm_12h_model_mp_TAS,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_TAS_20230911.rds'))
+
+##couple warnings:
+# Warning messages:
+# Hessian was not positive-definite so some standard errors could not be calculated. 
+
+# View(fit_ssm_12h_model_mp_TAS)
+#those that have converged == FALSE: 98103-4
+# pdHess == FALSE: NONE
+
+
+###  don't normalise ### 
+fit_ssm_12h_model_mp_TAS_p <-  fit_ssm_12h_model_mp_TAS %>% grab(what="p")
+# --> logit_g.se == NA: 98103-4
+#add other columns to data: PTT, year, month, tagging cohort...
+fit_ssm_12h_model_mp_TAS_p_v2 <- fit_ssm_12h_model_mp_TAS_p %>% 
+  mutate(PTT = id) %>% 
+  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+  select(-leftovers) %>% 
+  mutate(Year = lubridate::year(date)) %>% 
+  mutate(Month = month(date)) %>% 
+  mutate(cohort = "TAS 2010")   
+
+## save and map in QGIS
+#write_csv(fit_ssm_12h_model_mp_TAS_p_v2,here::here('SSM', 'data', 'ssm_mpm_TAS2010_SRW_20230911.csv'))
+summary(fit_ssm_12h_model_mp_TAS_p_v2$g)
+#   Min.  1st Qu.  Median   Mean 3rd Qu.    Max. 
+# 0.2009  0.9709  0.9808  0.9510  0.9923  1.0000  
+
+
+
+
+
+### NZ 2009 ######
+
+load("C:/Users/lrie0/Documents/SRW projects/SRWs/tag data/Mackay et al 2020 data/raw_argos_df_NZ_2009.RData")
+glimpse(raw_argos_df_NZ_2009)
+#write_csv(raw_argos_df_NZ_2009,here::here('SSM', 'data', 'raw_argos_df_NZ_2009.csv'))
+
+#column names are already what they should be, and data does not cross 180 meridian
+
+#remove the poor quality locations -- doesn't really matter if do this here or later, but jsut do it here
+raw_argos_df_NZ_2009 <- raw_argos_df_NZ_2009 %>% 
+  filter (lc != "Z")
+
+
+################################################################
+
+# SDA filter - leave this to fit_ssm
+
+
+################################################################
+
+#remove duplicates - leave this to fit_ssm
+
+
+################################################################
+
+
+#Time difference between successive locations
+
+NZ2009_time_diff_hours_df <- ddply(raw_argos_df_NZ_2009, ~id, function(d){
+  d$time_diff_hours <- NA
+  for (i in 2:nrow(d)){
+    d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
+  return(d)
+})
+
+
+
+ggplot(NZ2009_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,100)) + 
+  xlab("Time difference between successive locations")
+
+ggplot(NZ2009_time_diff_hours_df, aes(time_diff_hours)) + 
+  geom_histogram(binwidth = 1, col ="white", na.rm = T) + 
+  theme_bw() + xlim(c(0,15)) + 
+  xlab("Time difference between successive locations")
+
+
+################################################################
+
+#Segment tracks
+
+NZ2009_trackseg_argos_df <- ddply(NZ2009_time_diff_hours_df, ~id, function(d){
+  ind <- which(d$time_diff_hours > 36) 
+  d$mark <- 0
+  d$mark[ind] <- 1
+  d$track_seg <- cumsum(d$mark)
+  return(d)
+})
+
+# Now create a new id based on track segment
+NZ2009_trackseg_argos_df$track_id <- paste(NZ2009_trackseg_argos_df$id, "-", NZ2009_trackseg_argos_df$track_seg, sep="")
+
+table(NZ2009_trackseg_argos_df$track_id)
+
+length(unique(NZ2009_trackseg_argos_df$track_id)) 
+
+
+# remove short track segs, test n <25 
+min_obs <- 20 ## set the number of minimum obs acceptable
+NZ2009_trackseg_argos_df <- NZ2009_trackseg_argos_df %>% group_by(track_id)
+NZ2009_trackseg_argos_df_filt <- filter(NZ2009_trackseg_argos_df, n() >= min_obs)
+
+table(NZ2009_trackseg_argos_df_filt$track_id)
+length(unique(NZ2009_trackseg_argos_df_filt$track_id)) # depends on time step and length chosen
+
+
+
+################################################################
+
+#SSM
+
+NZ2009_ssm_df <- NZ2009_trackseg_argos_df_filt
+
+
+#now structure the data frame so it matches the required structure for SSM
+#this data did not have error ellipse variables
+NZ2009_ssm_df <- NZ2009_ssm_df %>% 
+  select(track_id, date, lc, lon, lat, time_diff_hours) %>% 
+  dplyr::rename(id = track_id)
+
+
+
+################################################################
+
+
+#TAS data, 36h gap, 25 locs is short track, 12h ssm time step: 
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_12h_model_mp_NZ2009 <- fit_ssm(NZ2009_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+#write_rds(fit_ssm_12h_model_mp_NZ2009,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_NZ2009_20230911.rds'))
+
+##couple warnings:
+# Warning messages:
+# 1: Hessian was not positive-definite so some standard errors could not be calculated. 
+# 2: Hessian was not positive-definite so some standard errors could not be calculated. 
+# 3: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+# 4: Hessian was not positive-definite so some standard errors could not be calculated.
+
+# View(fit_ssm_12h_model_mp_NZ2009)
+#those that have converged == FALSE: 96373-5, 96374-0
+# pdHess == FALSE: NONE
+
+
+###  don't normalise ### 
+fit_ssm_12h_model_mp_NZ2009_p <-  fit_ssm_12h_model_mp_NZ2009 %>% grab(what="p")
+# --> logit_g.se == NA: 96373-5, 96378-0
+#add other columns to data: PTT, year, month, tagging cohort...
+fit_ssm_12h_model_mp_NZ2009_p_v2 <- fit_ssm_12h_model_mp_NZ2009_p %>% 
+  mutate(PTT = id) %>% 
+  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+  select(-leftovers) %>% 
+  mutate(Year = lubridate::year(date)) %>% 
+  mutate(Month = month(date)) %>% 
+  mutate(cohort = "NZ 2009")   
+
+## save and map in QGIS
+#write_csv(fit_ssm_12h_model_mp_NZ2009_p_v2,here::here('SSM', 'data', 'ssm_mpm_NZ2009_SRW_20230911.csv'))
+summary(fit_ssm_12h_model_mp_NZ2009_p_v2$g)
+#   Min.  1st Qu.  Median   Mean 3rd Qu.    Max. 
+# 0.0518  0.7479  0.8292  0.8078  0.9135  0.9961  
+
+
+
+
 
 
 
