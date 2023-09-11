@@ -202,7 +202,7 @@ table(trackseg_argos_df$track_id)
 length(unique(trackseg_argos_df$track_id)) 
 
 
-# remove short track segs, test n <25 
+# remove short track segs, test n < 25 
 min_obs <- 25 ## set the number of minimum obs acceptable
 trackseg_argos_df <- trackseg_argos_df %>% group_by(track_id)
 trackseg_argos_df_filt <- filter(trackseg_argos_df, n() >= min_obs)
@@ -238,28 +238,56 @@ ssm_df <- ssm_df %>%
 
 #speed filter threshold (vmax) of 5 ms−1
 fit_ssm_12h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
-#write_rds(fit_ssm_12h_model_mp_NZ_all,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_NZ_all_20230906.rds'))
 ## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
 #but it does work on grouped data
+  ##when short track is < 25
+  #write_rds(fit_ssm_12h_model_mp_NZ_all,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_NZ_all_20230906.rds')) ##short track <25
+  ##when short track is < 20
+  #write_rds(fit_ssm_12h_model_mp_NZ_all,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_NZ_all_20230912.rds')) ##short track <20
 
-##couple warnings:
-# Warning messages:
-# 1: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
-#   `map = list(psi = factor(NA))` 
-# 2: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
-#   `map = list(psi = factor(NA))` 
-# 3: The optimiser failed. Try simplifying the model with the following argument: 
-#   `map = list(psi = factor(NA))` 
-# 4: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
-#   `map = list(psi = factor(NA))` 
-# 5: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
-# 6: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
-#   `map = list(psi = factor(NA))` 
+  ##when short track is < 25
+  ##couple warnings:
+  #  Warning messages:
+  # 1: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 2: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 3: The optimiser failed. Try simplifying the model with the following argument: 
+  #   `map = list(psi = factor(NA))` 
+  # 4: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 5: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+  # 6: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+    # View(fit_ssm_12h_model_mp_NZ_all)
+    #those that have converged == FALSE: 215262-1, 215262-14
+    # pdHess == FALSE: 215262-14
 
-# View(fit_ssm_12h_model_mp_NZ_all)
-#those that have converged == FALSE: 215262-1, 215262-14
-# pdHess == FALSE: 215262-14
-  
+  ##when short track is < 20
+  # Warning messages:
+  #   1: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 2: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 3: The optimiser failed. Try simplifying the model with the following argument: 
+  #   `map = list(psi = factor(NA))` 
+  # 4: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+  # 5: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 6: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 7: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 8: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+  # 9: Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+  #   `map = list(psi = factor(NA))` 
+  # 10: The optimiser failed. Try simplifying the model with the following argument: 
+  #   `map = list(psi = factor(NA))` 
+    # View(fit_ssm_12h_model_mp_NZ_all)
+    #those that have converged == FALSE: 215262-1, 215262-14, 235399-4, 46635-1
+    # pdHess == FALSE: 215262-14, 46635-1
+
+
 fit_ssm_12h_model_mp_NZ_all_p_groupnormalised <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p",normalise = TRUE, group = TRUE)
 # --> logit_g.se == NA: NONE
 
@@ -289,7 +317,10 @@ summary(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2$g)
 ### 
 ### same model but don't normalise ### 
 fit_ssm_12h_model_mp_NZ_all_p <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p")
-# --> logit_g.se == NA: NONE
+  ##when short track is < 25
+  # --> logit_g.se == NA: NONE
+  ##when short track is < 20
+  # --> logit_g.se == NA: 235399-4
 #add other columns to data: PTT, year, month, tagging cohort...
 fit_ssm_12h_model_mp_NZ_all_p_v2 <- fit_ssm_12h_model_mp_NZ_all_p %>% 
   mutate(PTT = id) %>% 
@@ -303,10 +334,16 @@ fit_ssm_12h_model_mp_NZ_all_p_v2 <- fit_ssm_12h_model_mp_NZ_all_p %>%
                             PTT %in%  c("197853", "208742", "235399", "235400", 
                                         "235401" , "235402" , "235403" , "235404")  ~ "NZ 2022"))   
 ## save and map in QGIS
-#write_csv(fit_ssm_12h_model_mp_NZ_all_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20230906.csv'))
+  ##when short track is < 25
+  #write_csv(fit_ssm_12h_model_mp_NZ_all_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20230906.csv'))
 summary(fit_ssm_12h_model_mp_NZ_all_p_v2$g)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.0109  0.7929  0.8897  0.8535  0.9498  1.0000 
+  ##when short track is < 20
+  #write_csv(fit_ssm_12h_model_mp_NZ_all_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20230912.csv'))
+summary(fit_ssm_12h_model_mp_NZ_all_p_v2$g)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.0109  0.7932  0.8897  0.8537  0.9498  1.0000 
 
 
 
@@ -314,7 +351,7 @@ summary(fit_ssm_12h_model_mp_NZ_all_p_v2$g)
 
 
 
-##would there be lots more warnings if used 6hr ssm? 
+##would there be lots more warnings if used 6hr ssm? (gap 36h, short <25)s
 fit_ssm_6h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=6, control = ssm_control(verbose=0))
 #runs but has some warnings
 # Warning messages:
