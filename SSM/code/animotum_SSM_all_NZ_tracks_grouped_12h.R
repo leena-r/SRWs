@@ -775,6 +775,9 @@ summary(fit_ssm_12h_model_mp_HoB_p_v2$g)
 load("C:/Users/lrie0/Documents/SRW projects/SRWs/tag data/Mackay et al 2020 data/raw_argos_df_Tas.RData")
 glimpse(raw_argos_df_Tas)
 #write_csv(raw_argos_df_Tas,here::here('SSM', 'data', 'raw_argos_df_Tas.csv'))
+raw_argos_df_Tas <- read_csv(here::here('tag data', 'Mackay et al 2020 data', 'All_tracks_SRW.csv')) %>% 
+  filter(Location == "TAS")
+
 
 #column names are already what they should be, and data does not cross 180 meridian
 
