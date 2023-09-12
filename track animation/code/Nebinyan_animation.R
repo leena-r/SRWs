@@ -156,12 +156,16 @@ mymap.paths <- ggplot() +
   geom_point(data = fit_ssm_12h_model_mp_Nebinyan_p_v2, aes(x = lon, y = lat), size=2, colour = "magenta3") +
   geom_path(data = fit_ssm_12h_model_mp_Nebinyan_p_v2, aes(x = lon, y = lat), size=1.1, colour = "magenta3") +
   guides(color = guide_legend(override.aes = list(size = 10)))+
-  labs(x = "Longitude", y = "Latitude") +
+  labs(x = "Longitude", y = "Latitude", caption = "Animation by L. Riekkola") +
   theme(legend.position = "bottom",
         legend.title=element_text(size=25),
         legend.text=element_text(size=25),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
         axis.title = element_text(size = 20),
-        plot.title = element_text(size = 30)) 
+        plot.title = element_text(size = 30),
+        plot.caption = element_text(size = 10, face = "italic")
+        ) 
 
 # Static plot
 mymap.paths
@@ -184,7 +188,7 @@ path.animate.plot <- mymap.paths +
 # Be patient at this stage! It will eventually render in your plotting window
 animate(path.animate.plot,
         height = 800, width =1200,
-        fps = 5, # frames per second #3
+        fps = 10, # frames per second # 5fps, /  10fps = 30s gif / 20fps = 15s gif
         nframes = 300,  # default is 100 frames
         renderer = gifski_renderer()) ##this is needed for the export to work
 ##using settings along = date_time, fps = 1, and nframes = 4176 causes rendering to take a really long time, also
