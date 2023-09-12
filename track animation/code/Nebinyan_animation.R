@@ -156,14 +156,18 @@ mymap.paths <- ggplot() +
   geom_point(data = fit_ssm_12h_model_mp_Nebinyan_p_v2, aes(x = lon, y = lat), size=2, colour = "magenta3") +
   geom_path(data = fit_ssm_12h_model_mp_Nebinyan_p_v2, aes(x = lon, y = lat), size=1.1, colour = "magenta3") +
   guides(color = guide_legend(override.aes = list(size = 10)))+
-  labs(x = "Longitude", y = "Latitude", caption = "Animation by L. Riekkola") +
+  labs(x = "Longitude", y = "Latitude", 
+       tag = "Mirnong Maat - southern right whale research",
+       caption = "Animation by L. Riekkola") +
   theme(legend.position = "bottom",
         legend.title=element_text(size=25),
         legend.text=element_text(size=25),
         axis.text.x = element_text(size = 15),
         axis.text.y = element_text(size = 15),
         axis.title = element_text(size = 20),
-        plot.title = element_text(size = 30),
+        plot.title = element_text(size = 25,margin = margin(10, 0, 0, 0)),
+        plot.tag.position = "top",
+        plot.tag = element_text(size = 35, vjust = 1),
         plot.caption = element_text(size = 10, face = "italic")
         ) 
 
@@ -176,7 +180,7 @@ mymap.paths
 #Use 'transition_states' to show only one point at a time
 path.animate.plot <- mymap.paths +
   transition_reveal(along = date) + #date_time
-  labs(title = 'Date: {frame_along}', size=20)  # Add a label on top to say what date each frame is
+  labs(title = 'Date: {frame_along}', size=18)  # size=20, Add a label on top to say what date each frame is
 ##doesn't seem to plot every unique date and time combo... maybe try plotting by date only...?
 ### if don't want date in the animation
 #path.animate.plot <- mymap.paths +
@@ -188,7 +192,7 @@ path.animate.plot <- mymap.paths +
 # Be patient at this stage! It will eventually render in your plotting window
 animate(path.animate.plot,
         height = 800, width =1200,
-        fps = 10, # frames per second # 5fps, /  10fps = 30s gif / 20fps = 15s gif
+        fps = 20, # frames per second # 5fps, /  10fps = 30s gif / 20fps = 15s gif
         nframes = 300,  # default is 100 frames
         renderer = gifski_renderer()) ##this is needed for the export to work
 ##using settings along = date_time, fps = 1, and nframes = 4176 causes rendering to take a really long time, also
