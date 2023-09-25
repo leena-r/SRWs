@@ -205,8 +205,10 @@ anim_save("example.gif")
 #save as images instead of gif
 animate(path.animate.plot,
         height = 800, width =1200,
-        fps = 1, # frames per second 
-        nframes = 300)
+        fps = 20, # frames per second 
+        nframes = 500,
+        renderer = file_renderer(dir = "animation images",
+                                 prefix = "plot2_")))
 #then try to use https://clideo.com/editor/video-maker to join pngs into mp4
 
 
