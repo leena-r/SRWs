@@ -26,17 +26,18 @@ world_map <- map_data("world") %>%
 # Read the csv file to animate tracks from
 # use SSM version of OZ tracks  as they are tidier 
 #file has been edited a bit, add column for PTT
-OZ_2022_ssm <- read_csv(here::here('track animation', "OZ_2022_ssm_mp_normalised in each track_20230713.csv"))
+OZ_2022_ssm <- read_csv(here::here('track animation', "data", "ssm_mpm_OZ_SRW_2022_20231116.csv"))
 OZ_2022_ssm <- as.data.frame(OZ_2022_ssm)
 
-OZ_2022_ssm <- OZ_2022_ssm %>% #track too short so only adds confusion
-  filter(PTT != 235622)
-OZ_2022_ssm <- OZ_2022_ssm %>% ##kate requested dropping of this whale (Bibbul)
-  filter(PTT != 235411)
+## not included in updated file
+# OZ_2022_ssm <- OZ_2022_ssm %>% #track too short so only adds confusion
+#   filter(PTT != 235622)
+# OZ_2022_ssm <- OZ_2022_ssm %>% ##kate requested dropping of this whale (Bibbul)
+#   filter(PTT != 235411)
 
 OZ_2022_ssm$PTT <- as.factor(OZ_2022_ssm$PTT)
 OZ_2022_ssm <- OZ_2022_ssm %>% 
-  mutate(date = as_date(date_time)) 
+  mutate(date = as_date(date)) 
 OZ_2022_ssm <- OZ_2022_ssm %>% 
   dplyr::rename(whale_ID = PTT) 
 
@@ -49,6 +50,39 @@ OZ_2022_ssm <- OZ_2022_ssm %>% mutate(
     whale_ID == 235414 ~ "Wandinyil-mirnong",
     whale_ID == 235621 ~ "Busselton Whale 1"))
 
+
+
+
+########## 2023 data ############
+OZ_2023_ssm <- read_csv(here::here('track animation', "data", "ssm_mpm_OZ_SRW_2023_20231116.csv"))
+OZ_2023_ssm <- as.data.frame(OZ_2023_ssm)
+
+OZ_2023_ssm$PTT <- as.factor(OZ_2023_ssm$PTT)
+OZ_2023_ssm <- OZ_2023_ssm %>% 
+  mutate(date = as_date(date)) 
+OZ_2023_ssm <- OZ_2023_ssm %>% 
+  dplyr::rename(whale_ID = PTT) 
+
+OZ_2023_ssm <- OZ_2023_ssm %>% mutate(
+  whale_ID = case_when(
+    whale_ID == 235408 ~ "Moolyup",
+    whale_ID == 235409 ~ "Tyiurtj",
+    whale_ID == 235411 ~ "Yookily",
+    whale_ID == 235412 ~ "Twertup",
+    whale_ID == 245751 ~ "Naaranyirup",
+    whale_ID == 245752 ~ "Norngerin",
+    whale_ID == 245754 ~ "Merningup"))
+
+
+### join 2022 and 2023
+OZ_2022_2023_ssm <- rbind(OZ_2022_ssm,OZ_2023_ssm)
+
+## make whale ID levels so that 2022 data are first and then 2023 data
+
+OZ_2022_2023_ssm <- OZ_2022_2023_ssm %>% mutate(
+  whale_ID = factor(whale_ID, levels = c("Nebinyan", "Yilberup", "Augusta whale 1", "Augusta whale 2",
+                               "Wandinyil-mirnong" , "Busselton Whale 1", "Moolyup", "Tyiurtj", "Yookily", 
+                               "Twertup", "Naaranyirup", "Norngerin", "Merningup"))) 
 
 
 # Plot study site 
@@ -66,10 +100,12 @@ mymap.paths <- ggplot() +
   coord_equal() + 
   coord_fixed(xlim=c(40,150), ylim=c(-70,-30)) +
   theme_bw() +
-  geom_point(data = OZ_2022_ssm, aes(x = lon, y = lat, colour = whale_ID), size=2) +
-  geom_path(data = OZ_2022_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), size=1.1) +
+  geom_point(data = OZ_2022_2023_ssm, aes(x = lon, y = lat, colour = whale_ID), size=2) +
+  geom_path(data = OZ_2022_2023_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), size=1.1) +
   guides(color = guide_legend(override.aes = list(size = 10)))+
-  labs(x = "Longitude", y = "Latitude") +
+  labs(x = "Longitude", y = "Latitude", 
+       tag = "Mirnong Maat - southern right whale research",
+       caption = "Animation by L. Riekkola") +
   #scale_colour_manual(name = "whale ID",
   #                    # Adjust the number of values for how many animals you have
   #                    values = c("red", "blue", "purple", "green", "orange"), 
@@ -78,11 +114,19 @@ mymap.paths <- ggplot() +
   theme(legend.position = "bottom",
         legend.title=element_text(size=25),
         legend.text=element_text(size=25),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
         axis.title = element_text(size = 20),
-        plot.title = element_text(size = 30)) 
+        plot.title = element_text(size = 25,margin = margin(10, 0, 0, 0)),
+        plot.tag.position = "top",
+        plot.tag = element_text(size = 35, vjust = 1),
+        plot.caption = element_text(size = 10, face = "italic")
+  )
+
 
 # Static plot
 mymap.paths
+
 
 
 # Update plot to animate. 
@@ -99,7 +143,7 @@ path.animate.plot <- mymap.paths +
 # Be patient at this stage! It will eventually render in your plotting window
 animate(path.animate.plot,
         height = 800, width =1200,
-        fps = 5, # frames per second #3
+        fps = 10, # frames per second #3
         nframes = 300,  # default is 100 frames
         renderer = gifski_renderer()) ##this is needed for the export to work
 ##using settings along = date_time, fps = 1, and nframes = 4176 causes rendering to take a really long time, also
