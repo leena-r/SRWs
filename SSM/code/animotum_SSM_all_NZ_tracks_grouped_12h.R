@@ -23,7 +23,11 @@ world_map <- map_data("world")
 sc <- scale_colour_gradientn(colours = viridis(100), limits=c(0,1))
 
 
-################################################################
+######################################################################################
+######################################################################################
+########################### NZ TRACKS  #######################################
+######################################################################################
+######################################################################################
 
 #combine NZ data into one master file
 #note that couple of the 2022 cohort are still transmitting
@@ -404,8 +408,18 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 #write_csv(fit_ssm_12h_model_mp_test_215262_10_p,here::here('SSM', 'data', 'ssm_mpm_215262_10.csv'))
 #-- g values are same as in group run
 
+######################################################################################
+######################################################################################
 
 
+
+
+
+######################################################################################
+######################################################################################
+########################### OZ TRACKS  #######################################
+######################################################################################
+######################################################################################
 #########################################################################################
 ##run model on OZ tracks 
 
@@ -414,26 +428,16 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 #note that couple of the tags are still transmitting
 
 # ##OZ 2022
-# Ptt235405_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235405', "235405-Locations.csv"))
-# Ptt235406_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235406', "235406-Locations.csv"))
-# Ptt235407_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235407', "235407-Locations.csv"))
-# Ptt235408_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235408', "235408-Locations.csv"))
-# Ptt235409_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235409', "235409-Locations.csv"))
-# Ptt235410_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235410', "235410-Locations.csv"))
-# Ptt235411_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235411', "235411-Locations.csv"))
-# Ptt235412_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235412', "235412-Locations.csv"))
-# Ptt235413_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235413', "235413-Locations.csv"))
-# Ptt235414_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235414', "235414-Locations.csv"))
-# Ptt235621_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235621', "235621-Locations.csv"))
-# Ptt235622_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20230704', '235622', "235622-Locations.csv"))
+# Ptt235405_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235405', "235405-Locations.csv"))
+# Ptt235407_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235407', "235407-Locations.csv"))
+# Ptt235410_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235410', "235410-Locations.csv"))
+# Ptt235413_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235413', "235413-Locations.csv"))
+# Ptt235414_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235414', "235414-Locations.csv"))
+# Ptt235621_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235621', "235621-Locations.csv"))
 # 
-# Ptt235408_raw$Quality <- as.character(Ptt235408_raw$Quality) 
-# Ptt235409_raw$Quality <- as.character(Ptt235409_raw$Quality) 
 # 
-# all_ptt_OZ_2022 <- bind_rows(Ptt235405_raw, Ptt235406_raw, Ptt235407_raw, 
-#                              Ptt235408_raw, Ptt235409_raw, Ptt235410_raw,
-#                              Ptt235411_raw, Ptt235412_raw, Ptt235413_raw,
-#                              Ptt235414_raw, Ptt235621_raw, Ptt235622_raw)
+# all_ptt_OZ_2022 <- bind_rows(Ptt235405_raw, Ptt235407_raw, Ptt235410_raw,
+#                              Ptt235413_raw, Ptt235414_raw, Ptt235621_raw)
 # 
 # #Only keep desired columns
 # all_ptt_OZ_2022 <- all_ptt_OZ_2022 %>% 
@@ -448,17 +452,53 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 # 
 # all_ptt_OZ_2022$cohort <- 2022
 # 
-# #raw_argos_df <- rbind(all_ptt_2020,all_ptt_2021,all_ptt_2022)
 # 
 # #save combined OZ SRW data file - note that some tags still going
-# #write_rds(all_ptt_OZ_2022,here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20230713.rds'))
+# #write_rds(all_ptt_OZ_2022,here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20231116.rds'))
 
+
+# ##OZ 2023
+# Ptt235408_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '235408', "235408-Locations.csv"))
+# Ptt235409_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '235409', "235409-Locations.csv"))
+# Ptt235411_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '235411', "235411-Locations.csv"))
+# Ptt235412_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '235412', "235412-Locations.csv"))
+# Ptt245751_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '245751', "245751-Locations.csv"))
+# Ptt245752_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '245752', "245752-Locations.csv"))
+# #Ptt245753_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '245753', "245753-Locations.csv"))
+# #this one gives issues, and not in tag list anyway
+# Ptt245754_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '245754', "245754-Locations.csv"))
+
+#  
+# all_ptt_OZ_2023 <- bind_rows(Ptt235408_raw, Ptt235409_raw, Ptt235411_raw,
+#                              Ptt235412_raw, Ptt245751_raw, Ptt245752_raw, Ptt245754_raw)
+# 
+# #Only keep desired columns
+# all_ptt_OZ_2023 <- all_ptt_OZ_2023 %>% 
+#   select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+# 
+# 
+# all_ptt_OZ_2023 <- all_ptt_OZ_2023 %>% 
+#   mutate(DateTime_UTC = Date) %>%
+#   mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+#   select(-Date) %>%
+#   mutate(Date = as_date(DateTime_UTC)) 
+# 
+# all_ptt_OZ_2023$cohort <- 2023
+# 
+# 
+# #save combined OZ SRW data file - note that some tags still going
+# #write_rds(all_ptt_OZ_2023,here::here('SSM', 'data', 'OZ_SRW_2023_raw_argos_df_20231116.rds'))
 
 ################################################################
 
 
 #load in master data file
-raw_OZ_argos_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20230713.rds'))
+raw_OZ_argos_2022_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20231116.rds'))
+raw_OZ_argos_2023_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2023_raw_argos_df_20231116.rds'))
+
+##run separately fr each cohort (join SSM data together for joined animation)
+raw_OZ_argos_df <- raw_OZ_argos_2022_df
+##raw_OZ_argos_df <- raw_OZ_argos_2023_df
 
 #change column names to match Xuelei code
 #also convert longitude from 0-180 to 0-360
@@ -560,7 +600,8 @@ OZ_ssm_df <- OZ_ssm_df %>%
 
 
 ################################################################
-
+####           OZ 2022          ##############
+################################################################
 
 #OZ 2022 data, 36h gap, 25 locs is short track, 12h ssm time step: 
 
@@ -588,7 +629,7 @@ fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2 <- fit_ssm_12h_model_mp_OZ_p_groupn
   mutate(Month = month(date)) 
 fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$cohort <- 2022
 
-## save and map in QGIS
+## save and map in QGIS --- this has not been updated as dont think should use normalised data
 #write_csv(fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_normalised_20230906.csv'))
 
 
@@ -611,10 +652,10 @@ fit_ssm_12h_model_mp_OZ_p_v2 <- fit_ssm_12h_model_mp_OZ_p %>%
 fit_ssm_12h_model_mp_OZ_p_v2$cohort <- 2022
 
 ## save and map in QGIS
-#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_20230906.csv'))
+#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_20231116.csv'))
 summary(fit_ssm_12h_model_mp_OZ_p_v2$g)
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#0.1181  0.7491  0.8557  0.8262  0.9248  0.9921  
+# Min.   1st Qu.  Median  Mean 3rd Qu.    Max. 
+#0.1181  0.7590  0.8608  0.8313  0.9284  0.9921  
 
 
 
@@ -624,6 +665,93 @@ joined_NZ_and_OZ <- rbind(fit_ssm_12h_model_mp_NZ_all_p_v2, fit_ssm_12h_model_mp
 summary(joined_NZ_and_OZ$g)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.0109  0.7838  0.8831  0.8481  0.9460  1.0000 
+
+
+
+
+
+################################################################
+####           OZ 2023          ##############
+################################################################
+
+#OZ 2023 data, 36h gap, 25 locs is short track, 12h ssm time step: 
+
+#speed filter threshold (vmax) of 5 ms−1
+fit_ssm_12h_model_mp_OZ <- fit_ssm(OZ_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
+#but it does work on grouped data
+
+##no warning messages 
+
+# View(fit_ssm_12h_model_mp_OZ)
+#those that have converged == FALSE: 245754-1
+# pdHess == FALSE: NONE
+
+
+### not done for 2023
+# fit_ssm_12h_model_mp_OZ_p_groupnormalised <-  fit_ssm_12h_model_mp_OZ %>% grab(what="p",normalise = TRUE, group = TRUE)
+# # --> logit_g.se == NA: NONE
+# 
+# 
+# #add other columns to data: PTT, year, month, tagging cohort...
+# fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2 <- fit_ssm_12h_model_mp_OZ_p_groupnormalised %>% 
+#   mutate(PTT = id) %>% 
+#   separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+#   select(-leftovers) %>% 
+#   mutate(Year = lubridate::year(date)) %>% 
+#   mutate(Month = month(date)) 
+# fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$cohort <- 2022
+# 
+# ## save and map in QGIS --- this has not been updated as dont think should use normalised data
+# #write_csv(fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_normalised_20230906.csv'))
+# 
+# 
+# summary(fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$g)
+# # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# #0.0000  0.7220  0.8440  0.8102  0.9230  1.0000 
+
+
+### 
+### same model but don't normalise ### 
+fit_ssm_12h_model_mp_OZ_p <-  fit_ssm_12h_model_mp_OZ %>% grab(what="p")
+# --> logit_g.se == NA: NONE -- but some really big ones for 245754-1
+#add other columns to data: PTT, year, month, tagging cohort...
+fit_ssm_12h_model_mp_OZ_p_v2 <- fit_ssm_12h_model_mp_OZ_p %>% 
+  mutate(PTT = id) %>% 
+  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+  select(-leftovers) %>% 
+  mutate(Year = lubridate::year(date)) %>% 
+  mutate(Month = month(date))  
+fit_ssm_12h_model_mp_OZ_p_v2$cohort <- 2023
+
+## save and map in QGIS
+#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_2023_20231116.csv'))
+summary(fit_ssm_12h_model_mp_OZ_p_v2$g)
+# Min.   1st Qu.  Median  Mean 3rd Qu.    Max. 
+#0.3211  0.8023  0.9072  0.8773  0.9550  0.9906  
+
+
+
+
+
+
+
+
+
+
+
+
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+
+
+
+
+
 
 
 ################################################################
