@@ -30,7 +30,7 @@ sc <- scale_colour_gradientn(colours = viridis(100), limits=c(0,1))
 ######################################################################################
 
 #combine NZ data into one master file
-#note that couple of the 2022 cohort are still transmitting
+#all tags done transmittiing
 
 # ##NZ 2020
 # Ptt203571_raw <- read_csv(here::here('tag data', 'NZ', '2020', 'datapull 20230607', '203571', "203571-Locations.csv"))
@@ -90,15 +90,15 @@ sc <- scale_colour_gradientn(colours = viridis(100), limits=c(0,1))
 # 
 # 
 # 
-# ##NZ 2022  -- 1 still transmitting, as of 30 Aug 2023
-# Ptt197853_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230830', '197853', "197853-Locations.csv"))
-# Ptt208742_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230830', '208742', "208742-Locations.csv"))
-# Ptt235399_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230830', '235399', "235399-Locations.csv"))
-# Ptt235400_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230830', '235400', "235400-Locations.csv"))
-# Ptt235401_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230830', '235401', "235401-Locations.csv"))
-# Ptt235402_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230830', '235402', "235402-Locations.csv"))
-# Ptt235403_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230830', '235403', "235403-Locations.csv"))
-# Ptt235404_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20230830', '235404', "235404-Locations.csv"))
+# ##NZ 2022  
+# Ptt197853_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20231006', '197853', "197853-Locations.csv"))
+# Ptt208742_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20231006', '208742', "208742-Locations.csv"))
+# Ptt235399_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20231006', '235399', "235399-Locations.csv"))
+# Ptt235400_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20231006', '235400', "235400-Locations.csv"))
+# Ptt235401_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20231006', '235401', "235401-Locations.csv"))
+# Ptt235402_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20231006', '235402', "235402-Locations.csv"))
+# Ptt235403_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20231006', '235403', "235403-Locations.csv"))
+# Ptt235404_raw <- read_csv(here::here('tag data', 'NZ', '2022', 'datapull 20231006', '235404', "235404-Locations.csv"))
 # 
 # 
 # all_ptt_2022 <- bind_rows(Ptt197853_raw, Ptt208742_raw, Ptt235399_raw, Ptt235400_raw, 
@@ -124,8 +124,8 @@ sc <- scale_colour_gradientn(colours = viridis(100), limits=c(0,1))
 # raw_argos_df <- rbind(all_ptt_2020,all_ptt_2021,all_ptt_2022)
 # 
 # 
-# #save combined NZ SRW data file - note that 3 2022 tags still going
-# #write_rds(raw_argos_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_raw_argos_df_20230830.rds'))
+# #save combined NZ SRW data file - all tags done transmitting
+# #write_rds(raw_argos_df,here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_raw_argos_df_20231218.rds'))
 
 
 
@@ -133,7 +133,7 @@ sc <- scale_colour_gradientn(colours = viridis(100), limits=c(0,1))
 
 
 #load in master data file
-raw_argos_df <- read_rds(here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_raw_argos_df_20230830.rds'))
+raw_argos_df <- read_rds(here::here('SSM', 'data', 'NZ_SRW_2020_2021_2022_raw_argos_df_20231218.rds'))
 
 #change column names to match Xuelei code
 #also convert longitude from 0-180 to 0-360
@@ -245,7 +245,7 @@ fit_ssm_12h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=12, 
 ## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
 #but it does work on grouped data
   ##when short track is < 25
-  #write_rds(fit_ssm_12h_model_mp_NZ_all,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_NZ_all_20230906.rds')) ##short track <25
+  #write_rds(fit_ssm_12h_model_mp_NZ_all,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_NZ_all_20231218.rds')) ##short track <25
   ##when short track is < 20
   #write_rds(fit_ssm_12h_model_mp_NZ_all,here::here('SSM', 'data', 'fit_ssm_12h_model_mp_NZ_all_20230912.rds')) ##short track <20
 
@@ -292,28 +292,28 @@ fit_ssm_12h_model_mp_NZ_all<- fit_ssm(ssm_df, vmax=5, model="mp", time.step=12, 
     # pdHess == FALSE: 215262-14, 46635-1
 
 
-fit_ssm_12h_model_mp_NZ_all_p_groupnormalised <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p",normalise = TRUE, group = TRUE)
-# --> logit_g.se == NA: NONE
-
-
-#add other columns to data: PTT, year, month, tagging cohort...
-fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2 <- fit_ssm_12h_model_mp_NZ_all_p_groupnormalised %>% 
-  mutate(PTT = id) %>% 
-  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
-  select(-leftovers) %>% 
-  mutate(Year = lubridate::year(date)) %>% 
-  mutate(Month = month(date)) %>% 
-  mutate(cohort = case_when(PTT %in%  c("203571", "203572", "203573", "203574", "203575", "205015")  ~ "NZ 2020",
-                            PTT %in%  c("46633", "46635", "46950", "46955", "212499", "212500", 
-                                      "215258" , "215259" , "215261" , "215262", "215263")  ~ "NZ 2021",
-                            PTT %in%  c("197853", "208742", "235399", "235400", 
-                                      "235401" , "235402" , "235403" , "235404")  ~ "NZ 2022"))   
+# fit_ssm_12h_model_mp_NZ_all_p_groupnormalised <-  fit_ssm_12h_model_mp_NZ_all %>% grab(what="p",normalise = TRUE, group = TRUE)
+# # --> logit_g.se == NA: NONE
+# 
+# 
+# #add other columns to data: PTT, year, month, tagging cohort...
+# fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2 <- fit_ssm_12h_model_mp_NZ_all_p_groupnormalised %>% 
+#   mutate(PTT = id) %>% 
+#   separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
+#   select(-leftovers) %>% 
+#   mutate(Year = lubridate::year(date)) %>% 
+#   mutate(Month = month(date)) %>% 
+#   mutate(cohort = case_when(PTT %in%  c("203571", "203572", "203573", "203574", "203575", "205015")  ~ "NZ 2020",
+#                             PTT %in%  c("46633", "46635", "46950", "46955", "212499", "212500", 
+#                                       "215258" , "215259" , "215261" , "215262", "215263")  ~ "NZ 2021",
+#                             PTT %in%  c("197853", "208742", "235399", "235400", 
+#                                       "235401" , "235402" , "235403" , "235404")  ~ "NZ 2022"))   
 
 ## save and map in QGIS
 #write_csv(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_normalised_20230906.csv'))
 
 
-summary(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2$g)
+#(fit_ssm_12h_model_mp_NZ_all_p_groupnormalised_v2$g)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.0000  0.7906  0.8885  0.8519  0.9492  1.0000 
 
@@ -339,10 +339,10 @@ fit_ssm_12h_model_mp_NZ_all_p_v2 <- fit_ssm_12h_model_mp_NZ_all_p %>%
                                         "235401" , "235402" , "235403" , "235404")  ~ "NZ 2022"))   
 ## save and map in QGIS
   ##when short track is < 25
-  #write_csv(fit_ssm_12h_model_mp_NZ_all_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20230906.csv'))
+  #write_csv(fit_ssm_12h_model_mp_NZ_all_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20231218.csv'))
 summary(fit_ssm_12h_model_mp_NZ_all_p_v2$g)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.0109  0.7929  0.8897  0.8535  0.9498  1.0000 
+# 0.0109  0.7947  0.8920  0.8549  0.9504  1.0000 
   ##when short track is < 20
   #write_csv(fit_ssm_12h_model_mp_NZ_all_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_NZ_SRW_20230912.csv'))
 summary(fit_ssm_12h_model_mp_NZ_all_p_v2$g)
