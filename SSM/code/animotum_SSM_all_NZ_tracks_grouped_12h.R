@@ -457,16 +457,14 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 # #write_rds(all_ptt_OZ_2022,here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20231116.rds'))
 
 
-# ##OZ 2023
-# Ptt235408_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '235408', "235408-Locations.csv"))
-# Ptt235409_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '235409', "235409-Locations.csv"))
-# Ptt235411_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '235411', "235411-Locations.csv"))
-# Ptt235412_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '235412', "235412-Locations.csv"))
-# Ptt245751_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '245751', "245751-Locations.csv"))
-# Ptt245752_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '245752', "245752-Locations.csv"))
-# #Ptt245753_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '245753', "245753-Locations.csv"))
-# #this one gives issues, and not in tag list anyway
-# Ptt245754_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231116', '245754', "245754-Locations.csv"))
+# ##OZ 2023 --Norngerin still transmitting
+# Ptt235408_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '235408', "235408-Locations.csv"))
+# Ptt235409_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '235409', "235409-Locations.csv"))
+# Ptt235411_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '235411', "235411-Locations.csv"))
+# Ptt235412_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '235412', "235412-Locations.csv"))
+# Ptt245751_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '245751', "245751-Locations.csv"))
+# Ptt245752_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '245752', "245752-Locations.csv"))
+# Ptt245754_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '245754', "245754-Locations.csv"))
 
 #  
 # all_ptt_OZ_2023 <- bind_rows(Ptt235408_raw, Ptt235409_raw, Ptt235411_raw,
@@ -487,18 +485,22 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 # 
 # 
 # #save combined OZ SRW data file - note that some tags still going
-# #write_rds(all_ptt_OZ_2023,here::here('SSM', 'data', 'OZ_SRW_2023_raw_argos_df_20231116.rds'))
+# #write_rds(all_ptt_OZ_2023,here::here('SSM', 'data', 'OZ_SRW_2023_raw_argos_df_20231220.rds'))
+
+
+#raw_argos_df <- rbind(all_ptt_OZ_2022,all_ptt_OZ_2023)
+# 
+# 
+# #save combined NZ SRW data file - all tags done transmitting
+# #write_rds(raw_argos_df,here::here('SSM', 'data', 'OZ_SRW_2022_2023_raw_argos_df_20231220.rds'))
+
+
 
 ################################################################
 
 
 #load in master data file
-raw_OZ_argos_2022_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20231116.rds'))
-raw_OZ_argos_2023_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2023_raw_argos_df_20231116.rds'))
-
-##run separately fr each cohort (join SSM data together for joined animation)
-raw_OZ_argos_df <- raw_OZ_argos_2022_df
-##raw_OZ_argos_df <- raw_OZ_argos_2023_df
+raw_OZ_argos_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_2023_raw_argos_df_20231220.rds'))
 
 #change column names to match Xuelei code
 #also convert longitude from 0-180 to 0-360
@@ -517,6 +519,7 @@ raw_OZ_argos_df <- raw_OZ_argos_df %>%
 
 
 ################################################################
+
 
 # SDA filter - leave this to fit_ssm
 
@@ -568,7 +571,7 @@ OZ_trackseg_argos_df$track_id <- paste(OZ_trackseg_argos_df$id, "-", OZ_trackseg
 
 table(OZ_trackseg_argos_df$track_id)
 
-length(unique(OZ_trackseg_argos_df$track_id)) #42
+length(unique(OZ_trackseg_argos_df$track_id)) 
 
 
 # remove short track segs, test n <25 
@@ -600,95 +603,26 @@ OZ_ssm_df <- OZ_ssm_df %>%
 
 
 ################################################################
-####           OZ 2022          ##############
+####           OZ 2022 & 2023 joined run         ##############
 ################################################################
 
-#OZ 2022 data, 36h gap, 25 locs is short track, 12h ssm time step: 
+#OZ 2022 and 2023 data, 36h gap, 25 locs is short track, 12h ssm time step: 
 
 #speed filter threshold (vmax) of 5 ms−1
 fit_ssm_12h_model_mp_OZ <- fit_ssm(OZ_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
 ## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
 #but it does work on grouped data
 
-##no warning messages 
-
-# View(fit_ssm_12h_model_mp_OZ)
-#those that have converged == FALSE: NONE
-# pdHess == FALSE: NONE
-
-fit_ssm_12h_model_mp_OZ_p_groupnormalised <-  fit_ssm_12h_model_mp_OZ %>% grab(what="p",normalise = TRUE, group = TRUE)
-# --> logit_g.se == NA: NONE
-
-
-#add other columns to data: PTT, year, month, tagging cohort...
-fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2 <- fit_ssm_12h_model_mp_OZ_p_groupnormalised %>% 
-  mutate(PTT = id) %>% 
-  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
-  select(-leftovers) %>% 
-  mutate(Year = lubridate::year(date)) %>% 
-  mutate(Month = month(date)) 
-fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$cohort <- 2022
-
-## save and map in QGIS --- this has not been updated as dont think should use normalised data
-#write_csv(fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_normalised_20230906.csv'))
-
-
-summary(fit_ssm_12h_model_mp_OZ_p_groupnormalised_v2$g)
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#0.0000  0.7220  0.8440  0.8102  0.9230  1.0000 
-
-
-### 
-### same model but don't normalise ### 
-fit_ssm_12h_model_mp_OZ_p <-  fit_ssm_12h_model_mp_OZ %>% grab(what="p")
-# --> logit_g.se == NA: NONE
-#add other columns to data: PTT, year, month, tagging cohort...
-fit_ssm_12h_model_mp_OZ_p_v2 <- fit_ssm_12h_model_mp_OZ_p %>% 
-  mutate(PTT = id) %>% 
-  separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
-  select(-leftovers) %>% 
-  mutate(Year = lubridate::year(date)) %>% 
-  mutate(Month = month(date))  
-fit_ssm_12h_model_mp_OZ_p_v2$cohort <- 2022
-
-## save and map in QGIS
-#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_20231116.csv'))
-summary(fit_ssm_12h_model_mp_OZ_p_v2$g)
-# Min.   1st Qu.  Median  Mean 3rd Qu.    Max. 
-#0.1181  0.7590  0.8608  0.8313  0.9284  0.9921  
-
-
-
-
-
-joined_NZ_and_OZ <- rbind(fit_ssm_12h_model_mp_NZ_all_p_v2, fit_ssm_12h_model_mp_OZ_p_v2)
-summary(joined_NZ_and_OZ$g)
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.0109  0.7838  0.8831  0.8481  0.9460  1.0000 
-
-
-
-
-
-################################################################
-####           OZ 2023          ##############
-################################################################
-
-#OZ 2023 data, 36h gap, 25 locs is short track, 12h ssm time step: 
-
-#speed filter threshold (vmax) of 5 ms−1
-fit_ssm_12h_model_mp_OZ <- fit_ssm(OZ_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
-## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
-#but it does work on grouped data
-
-##no warning messages 
+# Warning message:
+#   Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
+#   `map = list(psi = factor(NA))`
 
 # View(fit_ssm_12h_model_mp_OZ)
 #those that have converged == FALSE: 245754-1
 # pdHess == FALSE: NONE
 
 
-### not done for 2023
+
 # fit_ssm_12h_model_mp_OZ_p_groupnormalised <-  fit_ssm_12h_model_mp_OZ %>% grab(what="p",normalise = TRUE, group = TRUE)
 # # --> logit_g.se == NA: NONE
 # 
@@ -714,25 +648,24 @@ fit_ssm_12h_model_mp_OZ <- fit_ssm(OZ_ssm_df, vmax=5, model="mp", time.step=12, 
 ### 
 ### same model but don't normalise ### 
 fit_ssm_12h_model_mp_OZ_p <-  fit_ssm_12h_model_mp_OZ %>% grab(what="p")
-# --> logit_g.se == NA: NONE -- but some really big ones for 245754-1
+# --> logit_g.se == NA: NONE
 #add other columns to data: PTT, year, month, tagging cohort...
 fit_ssm_12h_model_mp_OZ_p_v2 <- fit_ssm_12h_model_mp_OZ_p %>% 
   mutate(PTT = id) %>% 
   separate(col=PTT, into=c('PTT', 'leftovers'), sep='-') %>% 
   select(-leftovers) %>% 
   mutate(Year = lubridate::year(date)) %>% 
-  mutate(Month = month(date))  
-fit_ssm_12h_model_mp_OZ_p_v2$cohort <- 2023
+  mutate(Month = month(date)) %>% 
+  mutate(cohort = case_when(PTT %in%  c("235405", "235407",  "235410", 
+                                        "235413", "235414", "235621" )  ~ "OZ 2022",
+                            PTT %in%  c("235408", "235409", "235411", "235412", 
+                                        "245751" , "245752" , "245754" )  ~ "OZ 2023"))
 
 ## save and map in QGIS
-#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_OZ_SRW_2023_20231116.csv'))
+#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_OZ_SRW_20231220.csv'))
 summary(fit_ssm_12h_model_mp_OZ_p_v2$g)
 # Min.   1st Qu.  Median  Mean 3rd Qu.    Max. 
-#0.3211  0.8023  0.9072  0.8773  0.9550  0.9906  
-
-
-
-
+#0.1181  0.7773  0.8743  0.8441  0.9361  0.9921  
 
 
 
