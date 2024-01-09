@@ -283,12 +283,13 @@ animate(path.animate.plot,
 # Read the csv file to animate tracks from
 # use SSM version as they are tidier 
 #file has been edited a bit, add column for PTT
-NZ_2020_ssm <- read_csv(here::here('track animation','data', "NZ_2020_ssm_mp_normalised in each track_20230711.csv"))
-NZ_2020_ssm <- as.data.frame(NZ_2020_ssm)
+NZ_2020_ssm <- read_csv(here::here('track animation','data', "ssm_mpm_all_NZ_SRW_20231218.csv"))
+NZ_2020_ssm <- as.data.frame(NZ_2020_ssm) %>% 
+  filter(cohort == "NZ 2020")
 
 NZ_2020_ssm$PTT <- as.factor(NZ_2020_ssm$PTT)
 NZ_2020_ssm <- NZ_2020_ssm %>% 
-  mutate(date = as_date(date_time)) 
+  mutate(date = as_date(date)) 
 NZ_2020_ssm <- NZ_2020_ssm %>% 
   dplyr::rename(whale_ID = PTT) 
 
@@ -321,25 +322,29 @@ mybasemap <- ggplot() +
 mymap.paths <- ggplot() + 
   geom_polygon(data = world_map, aes(x=long, y=lat, group=group), fill="black") +
   coord_equal() + 
-  coord_fixed(xlim=c(80,200), ylim=c(-70,-30)) +
+  coord_fixed(xlim=c(75,180), ylim=c(-70,-30)) +
   theme_bw() +
-  geom_point(data = NZ_2020_ssm, aes(x = lon, y = lat, colour = whale_ID), size=6) + 
+  geom_point(data = NZ_2020_ssm, aes(x = lon, y = lat, colour = whale_ID), size=2) + 
   geom_path(data = NZ_2020_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), size=1.1) +
   guides(color = guide_legend(override.aes = list(size = 10)))+
-  labs(x = "Longitude", y = "Latitude") +
-  #scale_colour_manual(name = "whale ID",
-  #                    # Adjust the number of values for how many animals you have
-  #                    values = c("red", "blue", "purple", "green", "orange"), 
-  #                    # Enough breaks for every animal in the data set
-  #                    breaks = unique(OZ_2022_ssm$PTT)) + 
+  labs(x = "Longitude", y = "Latitude", 
+       #tag = "Mirnong Maat - southern right whale research",
+       caption = "Animation by L. Riekkola") +
   theme(legend.position = "bottom",
         legend.title=element_text(size=25),
         legend.text=element_text(size=25),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
         axis.title = element_text(size = 20),
-        plot.title = element_text(size = 30)) 
+        plot.title = element_text(size = 25,margin = margin(10, 0, 0, 0)),
+        plot.tag.position = "top",
+        plot.tag = element_text(size = 35, vjust = 1),
+        plot.caption = element_text(size = 10, face = "italic")
+  ) 
 
 # Static plot
 mymap.paths
+
 
 
 # Update plot to animate. 
@@ -356,7 +361,7 @@ path.animate.plot <- mymap.paths +
 # Be patient at this stage! It will eventually render in your plotting window
 animate(path.animate.plot,
         height = 800, width =1200,
-        fps = 5, # frames per second #3
+        fps = 10, # frames per second 
         nframes = 300,  # default is 100 frames
         renderer = gifski_renderer()) ##this is needed for the export to work
 ##using settings along = date_time, fps = 1, and nframes = 4176 causes rendering to take a really long time, also
@@ -471,7 +476,7 @@ animate(path.animate.plot,
 
 
 anim_save("example.gif")
-
+#can use https://cloudconvert.com/gif-to-mp4 to convert gif to mp4
 
 #save as images instead of gif
 animate(path.animate.plot,
