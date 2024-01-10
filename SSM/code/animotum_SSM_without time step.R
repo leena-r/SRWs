@@ -139,7 +139,7 @@ fit_ssm_NZ_all_no_timestep <- fit_ssm(ssm_df, vmax=5, model="crw", time.step=NA)
 fit_ssm_NZ_all_no_timestep_p <-  fit_ssm_NZ_all_no_timestep %>% grab(what="fitted")
 
 #write_csv(ssm_df,here::here('SSM', 'data', 'test_for_plotting_preSSM.csv'))
-
+#write_csv(fit_ssm_NZ_all_no_timestep_p,here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep.csv'))
 
 
 
