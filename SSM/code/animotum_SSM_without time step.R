@@ -142,6 +142,17 @@ fit_ssm_NZ_all_no_timestep_p <-  fit_ssm_NZ_all_no_timestep %>% grab(what="fitte
 #write_csv(fit_ssm_NZ_all_no_timestep_p,here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep_20240111.csv'))
 
 
+NZ_corrected <- read_csv(here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep_20240111_with_current_correction.csv'))
+ssm_df_NZ_corrected <- NZ_corrected %>% 
+  select(id, date, lon_correct, lat_correct) %>% 
+  dplyr::rename(lon = lon_correct, 
+                lat = lat_correct)
+
+fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+
+
+
+
 
 
 ######################################################################################
@@ -273,6 +284,11 @@ fit_ssm_OZ_all_no_timestep_p <-  fit_ssm_OZ_all_no_timestep %>% grab(what="fitte
 
 #write_csv(ssm_df,here::here('SSM', 'data', 'test_for_plotting_preSSM.csv'))
 #write_csv(fit_ssm_OZ_all_no_timestep_p,here::here('SSM', 'data', 'fit_ssm_OZ_all_no_timestep_20240124.csv'))
+
+
+##run mp on non time step, CRW, locations
+testdf <- fit_ssm_OZ_all_no_timestep_p %>% select(id, date, lon, lat)
+fit_mpm <- fit_ssm(testdf, model="mp", time.step=12, control = ssm_control(verbose=0))
 
 
 
