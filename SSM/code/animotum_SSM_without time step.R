@@ -148,9 +148,15 @@ ssm_df_NZ_corrected <- NZ_corrected %>%
   dplyr::rename(lon = lon_correct, 
                 lat = lat_correct)
 
-fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+nrow(ssm_df_NZ_corrected) #42947 has about 3 times more data than the OZ no time step df, but refuses to run mp on this...
+tic()
+fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0),map = list(psi = factor(NA)))
+toc()
+#Guessing that all observations are GPS locations.
+#7 min to run using original lat and lon from no time step df
+fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <-  fit_mp_12h_NZ_all_current_corrected %>% grab(what="fitted")
 
-
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon.csv'))
 
 
 
@@ -287,10 +293,16 @@ fit_ssm_OZ_all_no_timestep_p <-  fit_ssm_OZ_all_no_timestep %>% grab(what="fitte
 
 
 ##run mp on non time step, CRW, locations
-testdf <- fit_ssm_OZ_all_no_timestep_p %>% select(id, date, lon, lat)
-fit_mpm <- fit_ssm(testdf, model="mp", time.step=12, control = ssm_control(verbose=0))
-
-
+testdf <- read_csv(here::here('SSM', 'data', 'fit_ssm_OZ_all_no_timestep_20240124.csv'))
+testdf2 <- testdf %>% select(id, date, lon, lat)
+nrow(testdf2) #13343
+tic()
+fit_mpm <- fit_ssm(testdf2, model="mp", time.step=12, control = ssm_control(verbose=0),map = list(psi = factor(NA)))
+toc()
+#Guessing that all observations are GPS locations.
+##2 min run
+fit_mpm_OZ_mp_after_no_time_step_SSM <-  fit_mpm %>% grab(what="fitted")
+#now will have g for each time stamp, no 12h step
 
 
 
