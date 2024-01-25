@@ -425,15 +425,15 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 
 ###########
 #combine OZ data into one master file
-#note that couple of the tags are still transmitting
+#all are done transmitting
 
 # ##OZ 2022
-# Ptt235405_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235405', "235405-Locations.csv"))
-# Ptt235407_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235407', "235407-Locations.csv"))
-# Ptt235410_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235410', "235410-Locations.csv"))
-# Ptt235413_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235413', "235413-Locations.csv"))
-# Ptt235414_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235414', "235414-Locations.csv"))
-# Ptt235621_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20231006', '235621', "235621-Locations.csv"))
+# Ptt235405_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20240125', '235405', "235405-Locations.csv"))
+# Ptt235407_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20240125', '235407', "235407-Locations.csv"))
+# Ptt235410_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20240125', '235410', "235410-Locations.csv"))
+# Ptt235413_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20240125', '235413', "235413-Locations.csv"))
+# Ptt235414_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20240125', '235414', "235414-Locations.csv"))
+# Ptt235621_raw <- read_csv(here::here('tag data', 'OZ', '2022', 'datapull 20240125', '235621', "235621-Locations.csv"))
 # 
 # 
 # all_ptt_OZ_2022 <- bind_rows(Ptt235405_raw, Ptt235407_raw, Ptt235410_raw,
@@ -453,18 +453,18 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 # all_ptt_OZ_2022$cohort <- 2022
 # 
 # 
-# #save combined OZ SRW data file - note that some tags still going
-# #write_rds(all_ptt_OZ_2022,here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20231116.rds'))
+# #save combined OZ SRW data file -  all tags done transmitting 20240125
+# #write_rds(all_ptt_OZ_2022,here::here('SSM', 'data', 'OZ_SRW_2022_raw_argos_df_20240125.rds'))
 
 
-# ##OZ 2023 --Norngerin still transmitting
-# Ptt235408_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '235408', "235408-Locations.csv"))
-# Ptt235409_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '235409', "235409-Locations.csv"))
-# Ptt235411_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '235411', "235411-Locations.csv"))
-# Ptt235412_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '235412', "235412-Locations.csv"))
-# Ptt245751_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '245751', "245751-Locations.csv"))
-# Ptt245752_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '245752', "245752-Locations.csv"))
-# Ptt245754_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20231220', '245754', "245754-Locations.csv"))
+# ##OZ 2023 -- all done transmitting at 20240125 datapull
+# Ptt235408_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20240125', '235408', "235408-Locations.csv"))
+# Ptt235409_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20240125', '235409', "235409-Locations.csv"))
+# Ptt235411_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20240125', '235411', "235411-Locations.csv"))
+# Ptt235412_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20240125', '235412', "235412-Locations.csv"))
+# Ptt245751_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20240125', '245751', "245751-Locations.csv"))
+# Ptt245752_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20240125', '245752', "245752-Locations.csv"))
+# Ptt245754_raw <- read_csv(here::here('tag data', 'OZ', '2023', 'datapull 20240125', '245754', "245754-Locations.csv"))
 
 #  
 # all_ptt_OZ_2023 <- bind_rows(Ptt235408_raw, Ptt235409_raw, Ptt235411_raw,
@@ -484,15 +484,15 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 # all_ptt_OZ_2023$cohort <- 2023
 # 
 # 
-# #save combined OZ SRW data file - note that some tags still going
-# #write_rds(all_ptt_OZ_2023,here::here('SSM', 'data', 'OZ_SRW_2023_raw_argos_df_20231220.rds'))
+# #save combined OZ SRW data file  -  all tags done transmitting 20240125
+# #write_rds(all_ptt_OZ_2023,here::here('SSM', 'data', 'OZ_SRW_2023_raw_argos_df_20240125.rds'))
 
 
 #raw_argos_df <- rbind(all_ptt_OZ_2022,all_ptt_OZ_2023)
 # 
 # 
-# #save combined NZ SRW data file - all tags done transmitting
-# #write_rds(raw_argos_df,here::here('SSM', 'data', 'OZ_SRW_2022_2023_raw_argos_df_20231220.rds'))
+# #save combined NZ SRW data file -  all tags done transmitting 20240125
+# #write_rds(raw_argos_df,here::here('SSM', 'data', 'OZ_SRW_2022_2023_raw_argos_df_20240125.rds'))
 
 
 
@@ -500,7 +500,7 @@ fit_ssm_12h_model_mp_test_215262_10_p <-  fit_ssm_12h_model_mp_test_215262_10 %>
 
 
 #load in master data file
-raw_OZ_argos_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_2023_raw_argos_df_20231220.rds'))
+raw_OZ_argos_df <- read_rds(here::here('SSM', 'data', 'OZ_SRW_2022_2023_raw_argos_df_20240125.rds'))
 
 #change column names to match Xuelei code
 #also convert longitude from 0-180 to 0-360
@@ -609,16 +609,22 @@ OZ_ssm_df <- OZ_ssm_df %>%
 #OZ 2022 and 2023 data, 36h gap, 25 locs is short track, 12h ssm time step: 
 
 #speed filter threshold (vmax) of 5 ms−1
-fit_ssm_12h_model_mp_OZ <- fit_ssm(OZ_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0))
+tic()
+fit_ssm_12h_model_mp_OZ <- fit_ssm(OZ_ssm_df, vmax=5, model="mp", time.step=12, control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+toc() ##1.3 min to run all OZ data
 ## based on animotum documentation this shouldn't work as model=mp should be only for running one track at a time
 #but it does work on grouped data
 
 # Warning message:
 #   Hessian was not positive-definite so some standard errors could not be calculated. Try simplifying the model by adding the following argument:
 #   `map = list(psi = factor(NA))`
+## if include the added argument, then:
+# Warning messages:
+#   1: Hessian was not positive-definite so some standard errors could not be calculated. 
+# 2: Hessian was not positive-definite so some standard errors could not be calculated. 
 
 # View(fit_ssm_12h_model_mp_OZ)
-#those that have converged == FALSE: 245754-1
+#those that have converged == FALSE: 245754-3
 # pdHess == FALSE: NONE
 
 
@@ -662,11 +668,15 @@ fit_ssm_12h_model_mp_OZ_p_v2 <- fit_ssm_12h_model_mp_OZ_p %>%
                                         "245751" , "245752" , "245754" )  ~ "OZ 2023"))
 
 ## save and map in QGIS
-#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_OZ_SRW_20231220.csv'))
+#write_csv(fit_ssm_12h_model_mp_OZ_p_v2,here::here('SSM', 'data', 'ssm_mpm_all_OZ_SRW_20240125.csv'))
 summary(fit_ssm_12h_model_mp_OZ_p_v2$g)
+# 20240125 datapull run
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.05947 0.56414 0.72802 0.69965 0.86068 0.99612
+##previous
 # Min.   1st Qu.  Median  Mean 3rd Qu.    Max. 
 #0.1181  0.7773  0.8743  0.8441  0.9361  0.9921  
-
+## the differnce seems to be due to the `map = list(psi = factor(NA))` argument
 
 
 
