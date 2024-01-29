@@ -164,11 +164,16 @@ toc()
 ##save mpm results using the 'original' lat and lon from CRW
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <-  fmp_original %>% grab(what="fitted")
 nrow(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon) #42947 
+##change some column names if want to join with current corrected data, to avoid duplicated column names
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
   dplyr::rename(logit_g_orig = logit_g,
                 logit_g.se_orig = logit_g.se,
                 g_orig = g)
 
+hist(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
+summary(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
+
+##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
   left_join(NZ_original) %>% 
   select(id, date,lon,lat,logit_g_orig,logit_g.se_orig,g_orig )
@@ -202,7 +207,12 @@ toc()
 ##save mpm results using the current corrected lat and lon
 fit_mpm_NZ_no_time_step_SSM_but_current_corrected <-  fmp %>% grab(what="fitted")
 nrow(fit_mpm_NZ_no_time_step_SSM_but_current_corrected) #37922 -- #seems to be missing those that didn't converge
+
+hist(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g) ##loooks bit odd
+summary(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g)
 #write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'fit_mpm_NZ_no_time_step_SSM_but_current_corrected.csv'))
+
+
 
 
 test <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 %>% left_join(fit_mpm_NZ_no_time_step_SSM_but_current_corrected)
