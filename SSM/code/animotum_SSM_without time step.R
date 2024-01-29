@@ -142,6 +142,43 @@ fit_ssm_NZ_all_no_timestep_p <-  fit_ssm_NZ_all_no_timestep %>% grab(what="fitte
 #write_csv(fit_ssm_NZ_all_no_timestep_p,here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep_20240111.csv'))
 
 
+################################################################
+##get gamma values for the locations
+
+##run mpm on the 'original' locations
+
+NZ_original <- read_csv(here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep_20240111_with_current_correction.csv'))
+NZ_original <- NZ_original %>% 
+  select(id, date, lon, lat) 
+
+nrow(NZ_original) #42947 
+
+tic()
+fmp_original <- fit_mpm(NZ_original, 
+               what = "fitted", ##?fit_mpm() : 'what' gets ignored if x is a data frame
+               model = "mpm",
+               control = mpm_control(verbose = 0))
+toc()
+##no errors/FALSE when run fit_mpm on 'original' lat and lon
+
+##save mpm results using the 'original' lat and lon from CRW
+fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <-  fmp_original %>% grab(what="fitted")
+nrow(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon) #42947 
+fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
+  dplyr::rename(logit_g_orig = logit_g,
+                logit_g.se_orig = logit_g.se,
+                g_orig = g)
+
+fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
+  left_join(NZ_original) %>% 
+  select(id, date,lon,lat,logit_g_orig,logit_g.se_orig,g_orig )
+
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon.csv'))
+
+
+
+##run mpm on the current corrected locations
+
 NZ_corrected <- read_csv(here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep_20240111_with_current_correction.csv'))
 ssm_df_NZ_corrected <- NZ_corrected %>% 
   select(id, date, lon_correct, lat_correct) %>% 
@@ -149,14 +186,32 @@ ssm_df_NZ_corrected <- NZ_corrected %>%
                 lat = lat_correct)
 
 nrow(ssm_df_NZ_corrected) #42947 has about 3 times more data than the OZ no time step df, but refuses to run mp on this...
+#problem was using fit_ssm(model="mp"), need to use fit_mpm(model = "mpm")
 tic()
-fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0),map = list(psi = factor(NA)))
+#fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0),map = list(psi = factor(NA)))
+#Guessing that all observations are GPS locations. 
+fmp <- fit_mpm(ssm_df_NZ_corrected, 
+               what = "fitted", 
+               model = "mpm",
+               control = mpm_control(verbose = 0))
 toc()
-#Guessing that all observations are GPS locations.
-#7 min to run using original lat and lon from no time step df
-fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <-  fit_mp_12h_NZ_all_current_corrected %>% grab(what="fitted")
+#View(fmp)
+#when running fit_mpm on current corrected lat and lon:
+#those that have converged == FALSE: 215262-10, 235399-2, 235403-0, 46633-0 ##Error in opt[["par"]] : subscript out of bounds
 
-#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon.csv'))
+##save mpm results using the current corrected lat and lon
+fit_mpm_NZ_no_time_step_SSM_but_current_corrected <-  fmp %>% grab(what="fitted")
+nrow(fit_mpm_NZ_no_time_step_SSM_but_current_corrected) #37922 -- #seems to be missing those that didn't converge
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'fit_mpm_NZ_no_time_step_SSM_but_current_corrected.csv'))
+
+
+test <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 %>% left_join(fit_mpm_NZ_no_time_step_SSM_but_current_corrected)
+test_no_NA <- test %>% filter(!is.na(g))
+#write_csv(test,here::here('SSM', 'data', 'test.csv'))
+test_v2 <- test %>% 
+  mutate(g_diff = g_orig-g)
+
+hist(test_v2$g_diff)
 
 
 
