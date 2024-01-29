@@ -200,15 +200,21 @@ fmp <- fit_mpm(ssm_df_NZ_corrected,
                model = "mpm",
                control = mpm_control(verbose = 0))
 toc()
+# Error in nlminb(obj$par, ifelse(control$verbose == 1, myfn, obj$fn), obj$gr,  : 
+#                   NA/NaN gradient evaluation
+#                 In addition: Warning messages:
+#                   1: In sqrt(diag(object$cov.fixed)) : NaNs produced
+#                 2: In sqrt(diag(object$cov.fixed)) : NaNs produced
+#                 3: In sqrt(diag(object$cov.fixed)) : NaNs produced
+#                 4: In sqrt(diag(object$cov.fixed)) : NaNs produced
 #View(fmp)
-#when running fit_mpm on current corrected lat and lon:
-#those that have converged == FALSE: 215262-10, 235399-2, 235403-0, 46633-0 ##Error in opt[["par"]] : subscript out of bounds
+#converged == FALSE: 215262-10, 235399-2, 235403-0, 46633-0 ##Error in opt[["par"]] : subscript out of bounds
 
 ##save mpm results using the current corrected lat and lon
 fit_mpm_NZ_no_time_step_SSM_but_current_corrected <-  fmp %>% grab(what="fitted")
 nrow(fit_mpm_NZ_no_time_step_SSM_but_current_corrected) #37922 -- #seems to be missing those that didn't converge
 
-hist(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g) ##loooks bit odd
+hist(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g) ##looks bit odd
 summary(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g)
 #write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'fit_mpm_NZ_no_time_step_SSM_but_current_corrected.csv'))
 
