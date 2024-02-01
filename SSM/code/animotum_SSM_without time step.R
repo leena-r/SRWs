@@ -17,6 +17,7 @@ library(rnaturalearth)
 library(plotly)
 library(tidyverse)
 library(here)
+library(Matrix)
 
 
 ######################################################################################
@@ -153,9 +154,12 @@ NZ_original <- NZ_original %>%
 
 nrow(NZ_original) #42947 
 
+##make sure ordered by id and date
+NZ_original <- NZ_original[order(NZ_original$id, NZ_original$date),]
+
 tic()
 fmp_original <- fit_mpm(NZ_original, 
-               what = "fitted", ##?fit_mpm() : 'what' gets ignored if x is a data frame
+               #what = "fitted", ##?fit_mpm() : 'what' gets ignored if x is a data frame
                model = "mpm",
                control = mpm_control(verbose = 0))
 toc()
@@ -172,13 +176,15 @@ fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_NZ_no_time_step_SSM_
 
 hist(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 summary(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
+#   sMin. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.00738 0.73699 0.88641 0.81413 0.95290 0.99918 
 
 ##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
   left_join(NZ_original) %>% 
   select(id, date,lon,lat,logit_g_orig,logit_g.se_orig,g_orig )
 
-#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon.csv'))
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_but_mp_on_original_lat_lon.csv'))
 
 
 
@@ -189,34 +195,49 @@ ssm_df_NZ_corrected <- NZ_corrected %>%
   select(id, date, lon_correct, lat_correct) %>% 
   dplyr::rename(lon = lon_correct, 
                 lat = lat_correct)
+nrow(ssm_df_NZ_corrected) #42947
 
-nrow(ssm_df_NZ_corrected) #42947 has about 3 times more data than the OZ no time step df, but refuses to run mp on this...
+##few instances of NA for current corrected lat and lon
+ssm_df_NZ_corrected <- ssm_df_NZ_corrected[!is.na(ssm_df_NZ_corrected$lon),]
+nrow(ssm_df_NZ_corrected) #42911
+
+##make sure ordered by id and date
+ssm_df_NZ_corrected <- ssm_df_NZ_corrected[order(ssm_df_NZ_corrected$id, ssm_df_NZ_corrected$date),]
+
 #problem was using fit_ssm(model="mp"), need to use fit_mpm(model = "mpm")
 tic()
 #fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0),map = list(psi = factor(NA)))
 #Guessing that all observations are GPS locations. 
 fmp <- fit_mpm(ssm_df_NZ_corrected, 
-               what = "fitted", 
+               #what = "fitted", 
                model = "mpm",
                control = mpm_control(verbose = 0))
 toc()
-# Error in nlminb(obj$par, ifelse(control$verbose == 1, myfn, obj$fn), obj$gr,  : 
-#                   NA/NaN gradient evaluation
-#                 In addition: Warning messages:
-#                   1: In sqrt(diag(object$cov.fixed)) : NaNs produced
+##after Gin's fix
+#                 1: In sqrt(diag(object$cov.fixed)) : NaNs produced
 #                 2: In sqrt(diag(object$cov.fixed)) : NaNs produced
 #                 3: In sqrt(diag(object$cov.fixed)) : NaNs produced
 #                 4: In sqrt(diag(object$cov.fixed)) : NaNs produced
 #View(fmp)
-#converged == FALSE: 215262-10, 235399-2, 235403-0, 46633-0 ##Error in opt[["par"]] : subscript out of bounds
+#but converged == FALSE: NONE
 
 ##save mpm results using the current corrected lat and lon
 fit_mpm_NZ_no_time_step_SSM_but_current_corrected <-  fmp %>% grab(what="fitted")
-nrow(fit_mpm_NZ_no_time_step_SSM_but_current_corrected) #37922 -- #seems to be missing those that didn't converge
+nrow(fit_mpm_NZ_no_time_step_SSM_but_current_corrected) #42911 
 
-hist(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g) ##looks bit odd
+hist(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g) ##looks bit odd still
 summary(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g)
-#write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'fit_mpm_NZ_no_time_step_SSM_but_current_corrected.csv'))
+# after Gins fix
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.0000  0.1828  0.4116  0.4267  0.6606  0.9799 
+
+##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
+fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2 <- fit_mpm_NZ_no_time_step_SSM_but_current_corrected %>% 
+  left_join(NZ_original) %>% 
+  select(id, date,lon,lat,logit_g,logit_g.se,g)
+
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_but_mp_on_current_corrected.csv'))
+
 
 
 
