@@ -154,6 +154,9 @@ NZ_original <- NZ_original %>%
 
 nrow(NZ_original) #42947 
 
+NZ_original$lc <- "G"
+
+
 ##make sure ordered by id and date
 NZ_original <- NZ_original[order(NZ_original$id, NZ_original$date),]
 
@@ -165,9 +168,17 @@ fmp_original <- fit_mpm(NZ_original,
 toc()
 ##no errors/FALSE when run fit_mpm on 'original' lat and lon
 
+##Gin suggestion, run fit_smm model=mp
+fmp_original <- fit_ssm(NZ_original, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+#Guessing that all observations are GPS locations.
+#no erros/complaints, but 235399-7 converged = FALSE
+
+id_235399_7 <- ssm_df_NZ_corrected %>% filter(id == "235399-7")
+fmp_id_235399_7 <- fit_ssm(id_235399_7, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+
 ##save mpm results using the 'original' lat and lon from CRW
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <-  fmp_original %>% grab(what="fitted")
-nrow(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon) #42947 
+nrow(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon) #42947 ##40829 when try Gin suggestion of fit_smm(model=mp)
 ##change some column names if want to join with current corrected data, to avoid duplicated column names
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
   dplyr::rename(logit_g_orig = logit_g,
@@ -178,6 +189,9 @@ hist(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 summary(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 #   sMin. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.00738 0.73699 0.88641 0.81413 0.95290 0.99918 
+#values when try Gin suggestion fit_ssm(model=mp)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.0704  0.7811  0.9061  0.8453  0.9563  0.9991 
 
 ##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
@@ -185,6 +199,9 @@ fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_S
   select(id, date,lon,lat,logit_g_orig,logit_g.se_orig,g_orig )
 
 #write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_but_mp_on_original_lat_lon.csv'))
+
+##does already have lat lon if run fit_smm(model_mp)
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_original_lat_lon_Gin_fix.csv'))
 
 
 
@@ -201,6 +218,8 @@ nrow(ssm_df_NZ_corrected) #42947
 ssm_df_NZ_corrected <- ssm_df_NZ_corrected[!is.na(ssm_df_NZ_corrected$lon),]
 nrow(ssm_df_NZ_corrected) #42911
 
+ssm_df_NZ_corrected$lc <- "G"
+
 ##make sure ordered by id and date
 ssm_df_NZ_corrected <- ssm_df_NZ_corrected[order(ssm_df_NZ_corrected$id, ssm_df_NZ_corrected$date),]
 
@@ -213,7 +232,7 @@ fmp <- fit_mpm(ssm_df_NZ_corrected,
                model = "mpm",
                control = mpm_control(verbose = 0))
 toc()
-##after Gin's fix
+##after Gin's fix of removing NAs
 #                 1: In sqrt(diag(object$cov.fixed)) : NaNs produced
 #                 2: In sqrt(diag(object$cov.fixed)) : NaNs produced
 #                 3: In sqrt(diag(object$cov.fixed)) : NaNs produced
@@ -221,15 +240,31 @@ toc()
 #View(fmp)
 #but converged == FALSE: NONE
 
+##Gin suggestion, run fit_smm model=mp
+fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA))) 
+#Guessing that all observations are GPS locations. -- if didn't create a lc = G column earlier
+#no erros/complaints, but converged =FALSE for 197853-2, 215261-2, 215262-14, 235399-7, 235402-1
+##same converged=FALSE if create a lc=G column before running fit_smm
+##all fail to converge if create a lc=GL column before running fit_smm
+##excluding the vmax=5 argument doesn't change outcome
+## same converged=FALSE if run without 'map' argument
+
+id_197853_2 <- ssm_df_NZ_corrected %>% filter(id == "197853-2")
+fmp_id_197853_2 <- fit_ssm(id_197853_2, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+
+
 ##save mpm results using the current corrected lat and lon
 fit_mpm_NZ_no_time_step_SSM_but_current_corrected <-  fmp %>% grab(what="fitted")
-nrow(fit_mpm_NZ_no_time_step_SSM_but_current_corrected) #42911 
+nrow(fit_mpm_NZ_no_time_step_SSM_but_current_corrected) #42911  ##34210 after Gin suggestion fit_smm(model_mp)
 
-hist(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g) ##looks bit odd still
+hist(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g) ##looks bit odd still -- looks better with fit_smm(model_mp)
 summary(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g)
-# after Gins fix
+# after Gins fix of removing nAs etc
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.0000  0.1828  0.4116  0.4267  0.6606  0.9799 
+#values when try Gin suggestion fit_ssm(model=mp)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.0000  0.7793  0.8882  0.8385  0.9395  0.9939 
 
 ##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
 fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2 <- fit_mpm_NZ_no_time_step_SSM_but_current_corrected %>% 
@@ -238,6 +273,8 @@ fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2 <- fit_mpm_NZ_no_time_step_
 
 #write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_but_mp_on_current_corrected.csv'))
 
+##does already have lat lon if run fit_smm(model_mp)
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_current_corr_lat_lon_Gin_fix.csv'))
 
 
 
