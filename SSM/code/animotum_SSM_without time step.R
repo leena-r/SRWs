@@ -420,20 +420,47 @@ fit_ssm_OZ_all_no_timestep_p <-  fit_ssm_OZ_all_no_timestep %>% grab(what="fitte
 #write_csv(ssm_df,here::here('SSM', 'data', 'test_for_plotting_preSSM.csv'))
 #write_csv(fit_ssm_OZ_all_no_timestep_p,here::here('SSM', 'data', 'fit_ssm_OZ_all_no_timestep_20240124.csv'))
 
-
+##########################################################################
 ##run mp on non time step, CRW, locations
 testdf <- read_csv(here::here('SSM', 'data', 'fit_ssm_OZ_all_no_timestep_20240124.csv'))
 testdf2 <- testdf %>% select(id, date, lon, lat)
 nrow(testdf2) #13343
-tic()
-fit_mpm <- fit_ssm(testdf2, model="mp", time.step=12, control = ssm_control(verbose=0),map = list(psi = factor(NA)))
-toc()
-#Guessing that all observations are GPS locations.
-##2 min run
-fit_mpm_OZ_mp_after_no_time_step_SSM <-  fit_mpm %>% grab(what="fitted")
+
+testdf2$lc <- "G"
+##make sure ordered by id and date
+testdf2 <- testdf2[order(testdf2$id, testdf2$date),]
+
+# tic()
+# fit_mpm <- fit_mpm(testdf2, 
+#                #what = "fitted", 
+#                model = "mpm",
+#                control = mpm_control(verbose = 0))
+# toc()
+# 
+
+##Gin suggestion, run fit_smm model=mp
+fmp_original_OZ <- fit_ssm(testdf2, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+#had some warnings. track id 235411-1 converged == FALSE
+
+##save mpm results using the 'original' lat and lon from CRW
+fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon <-  fmp_original_OZ %>% grab(what="fitted")
 #now will have g for each time stamp, no 12h step
+nrow(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon) ##12773 missing data for track id 235411-1 converged == FALSE
 
 
+##change some column names if want to join with current corrected data, to avoid duplicated column names
+fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon %>% 
+  dplyr::rename(logit_g_orig = logit_g,
+                logit_g.se_orig = logit_g.se,
+                g_orig = g)
+
+hist(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon$g_orig) ##looks bit off
+summary(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon$g_orig)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.03305 0.51439 0.65135 0.64579 0.77984 0.98404
+
+##does already have lat lon if run fit_smm(model_mp)
+#write_csv(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_original_lat_lon_Gin_fix.csv'))
 
 
 
