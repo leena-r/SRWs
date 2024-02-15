@@ -149,36 +149,72 @@ fit_ssm_NZ_all_no_timestep_p <-  fit_ssm_NZ_all_no_timestep %>% grab(what="fitte
 ##run mpm on the 'original' locations
 
 NZ_original <- read_csv(here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep_20240111_with_current_correction.csv'))
-NZ_original <- NZ_original %>% 
-  select(id, date, lon, lat) 
-
 nrow(NZ_original) #42947 
 
+## what if at this point remove NA cases, to keep things the same?
+##removing these cause the additional 235403-0 to not converge, on top of 235399-7
+NZ_original <- NZ_original[!is.na(NZ_original$lon_correct),]
+nrow(NZ_original) #42911 
+
+NZ_original <- NZ_original %>% 
+  select(id, date, lon, lat) 
+nrow(NZ_original)
+
+##the LC column doesn't matter too much. if don't create it, mp assumes GPS (which is same as creating a lc = G column)
+## lc == GL doesn't work
 NZ_original$lc <- "G"
 
 
 ##make sure ordered by id and date
 NZ_original <- NZ_original[order(NZ_original$id, NZ_original$date),]
 
-tic()
-fmp_original <- fit_mpm(NZ_original, 
-               #what = "fitted", ##?fit_mpm() : 'what' gets ignored if x is a data frame
-               model = "mpm",
-               control = mpm_control(verbose = 0))
-toc()
+##id 235399-7 has one odd location, remove it and see if that helps -- no it did not
+NZ_original <- NZ_original %>% filter(!lon == 146.6288000000011)
+
+
+#NZ_original <- NZ_original %>% filter(!id %in% c("215262-0", "215262-1",  "215262-10", "215262-11", "215262-14", "215262-8"))
+
+
+# tic()
+# fmp_original <- fit_mpm(NZ_original, 
+#                #what = "fitted", ##?fit_mpm() : 'what' gets ignored if x is a data frame
+#                model = "mpm",
+#                control = mpm_control(verbose = 0))
+# toc()
 ##no errors/FALSE when run fit_mpm on 'original' lat and lon
 
-##Gin suggestion, run fit_smm model=mp
-fmp_original <- fit_ssm(NZ_original, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
-#Guessing that all observations are GPS locations.
-#no erros/complaints, but 235399-7 converged = FALSE
 
-id_235399_7 <- ssm_df_NZ_corrected %>% filter(id == "235399-7")
-fmp_id_235399_7 <- fit_ssm(id_235399_7, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+
+
+##Gin suggestion, run fit_smm model=mp
+tic()
+fmp_original <- fit_ssm(NZ_original, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+toc()
+#"Guessing that all observations are GPS locations" - if no lc column was created
+#without a time step: some warnings, but 235399-7 converged = FALSE - and NAs for logit_g.se
+#and if at the start removed NA locs of corrected alt and lon also 235403-0 didn't converge - and NAs for logit_g.se
+
+##if use 6h time step - 7 segments that don't converge, and NAs for logit.se
+##if use 12h time step: converged = FALSE for: 208742-2, 215258-0, 215259-1, 215261-2, 215262-11, 235401-2, and NAs for logit.se
+## same if use 12h time step an no map=list argument
+#if use 24h time step: converged = FALSE for: 208742-2, 215261-2, 215262-11, 235401-2, 235402-0 - and NAs for logit_g.se
+### BEST TIME STEP: if use 18h time step: converged = FALSE for: 215258-14 [short], 215262-11 [short] - no NAs for logit_g.se
+# if use 18h time step and map = list(rho_o = factor(NA)): converged = FALSE for: 215258-14 [short], 215262-11 [short] - but has NAs for logit_g.se
+#if use 18h time step and drop PTT 215262: converged = FALSE for: 215258-14 [short] - no NAs for logit_g.se
+
+# id_235399_7 <- NZ_original %>% filter(id == "235399-7")
+# fmp_id_235399_7 <- fit_ssm(id_235399_7, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+# ##235399-7: The optimiser failed. Try simplifying the model with the following argument: `map = list(rho_o = factor(NA))`
+# id_235403_0 <- NZ_original %>% filter(id == "235403-0")
+# fmp_id_235399_7 <- fit_ssm(id_235403_0, model="mp", control = ssm_control(verbose=0), map = list(rho_o = factor(NA)))
+# ##The optimiser failed. Try simplifying the model with the following argument: `map = list(rho_o = factor(NA))`
+
 
 ##save mpm results using the 'original' lat and lon from CRW
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <-  fmp_original %>% grab(what="fitted")
-nrow(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon) #42947 ##40829 when try Gin suggestion of fit_smm(model=mp)
+nrow(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon) #42947 
+##40829 when try Gin suggestion of fit_smm(model=mp) and only 235399-7 converged = FALSE 
+##39507 when try Gin suggestion of fit_smm(model=mp) and 235399-7 and 235403-0 converged = FALSE 
 ##change some column names if want to join with current corrected data, to avoid duplicated column names
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
   dplyr::rename(logit_g_orig = logit_g,
@@ -204,7 +240,7 @@ fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_S
 #write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_original_lat_lon_Gin_fix.csv'))
 
 
-
+###########################################
 ##run mpm on the current corrected locations
 
 NZ_corrected <- read_csv(here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep_20240111_with_current_correction.csv'))
@@ -223,15 +259,23 @@ ssm_df_NZ_corrected$lc <- "G"
 ##make sure ordered by id and date
 ssm_df_NZ_corrected <- ssm_df_NZ_corrected[order(ssm_df_NZ_corrected$id, ssm_df_NZ_corrected$date),]
 
+### one of the issues might be that the lon_corrected is in 0-360 degree format instead of -180 to 180
+ssm_df_NZ_corrected <- ssm_df_NZ_corrected %>% mutate(lon = if_else(lon > 180, lon-360, lon))
+
+
+##PTT215262 seems to be the main problem, specifically "215262-11", "215262-14"
+#ssm_df_NZ_corrected <- ssm_df_NZ_corrected %>% filter(!id %in% c("215262-0", "215262-1",  "215262-10", "215262-11", "215262-14", "215262-8"))
+
+
 #problem was using fit_ssm(model="mp"), need to use fit_mpm(model = "mpm")
-tic()
-#fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0),map = list(psi = factor(NA)))
-#Guessing that all observations are GPS locations. 
-fmp <- fit_mpm(ssm_df_NZ_corrected, 
-               #what = "fitted", 
-               model = "mpm",
-               control = mpm_control(verbose = 0))
-toc()
+# tic()
+# #fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0),map = list(psi = factor(NA)))
+# #Guessing that all observations are GPS locations. 
+# fmp <- fit_mpm(ssm_df_NZ_corrected, 
+#                #what = "fitted", 
+#                model = "mpm",
+#                control = mpm_control(verbose = 0))
+# toc()
 ##after Gin's fix of removing NAs
 #                 1: In sqrt(diag(object$cov.fixed)) : NaNs produced
 #                 2: In sqrt(diag(object$cov.fixed)) : NaNs produced
@@ -240,18 +284,29 @@ toc()
 #View(fmp)
 #but converged == FALSE: NONE
 
+
 ##Gin suggestion, run fit_smm model=mp
-fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA))) 
+tic()
+fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+toc()
 #Guessing that all observations are GPS locations. -- if didn't create a lc = G column earlier
-#no erros/complaints, but converged =FALSE for 197853-2, 215261-2, 215262-14, 235399-7, 235402-1
+#some warnings,  converged=FALSE for 197853-2, 215261-2, 215262-14, 235399-7, 235402-1, and NAs for logit_g.se
 ##same converged=FALSE if create a lc=G column before running fit_smm
 ##all fail to converge if create a lc=GL column before running fit_smm
 ##excluding the vmax=5 argument doesn't change outcome
 ## same converged=FALSE if run without 'map' argument
+###IF FIX lon to be -180 to 180 (instead of 0-360):
+#still the same ones have issues
+##If add 6h time steP: 215258-14 [bit short], 215259-2 [bit short, but not THAT short] don't converge (logit.se no NAs)
+##If add 12h time steP: 215259-2 [bit short, but not THAT short], 215261-2 [short], 215262-14 [short] don't converge
+##If add 18h time steP: 215262-11 [bit short], 215262-14 [bit short] don't converge (some NAs for logit.se)
+##########if use 18h time step but drop all segments for PTT 215262 - all converge, but NAs for logit_g.se
 
-id_197853_2 <- ssm_df_NZ_corrected %>% filter(id == "197853-2")
-fmp_id_197853_2 <- fit_ssm(id_197853_2, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+#if drop PTT215262 and run without time step: 197853-2, 215261-2, 235399-7, 235402-1 don't converge, and NAs for logit_g.se
 
+# PTT215262 <- ssm_df_NZ_corrected %>% filter(id %in% c("215262-0", "215262-1",  "215262-10", "215262-11", "215262-14", "215262-8"))
+# fmp_PTT215262 <- fit_ssm(PTT215262, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA)))
+##segments 11 and 14 don't converge
 
 ##save mpm results using the current corrected lat and lon
 fit_mpm_NZ_no_time_step_SSM_but_current_corrected <-  fmp %>% grab(what="fitted")
