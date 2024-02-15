@@ -171,8 +171,15 @@ NZ_original <- NZ_original[order(NZ_original$id, NZ_original$date),]
 ##id 235399-7 has one odd location, remove it and see if that helps -- no it did not
 NZ_original <- NZ_original %>% filter(!lon == 146.6288000000011)
 
-
 #NZ_original <- NZ_original %>% filter(!id %in% c("215262-0", "215262-1",  "215262-10", "215262-11", "215262-14", "215262-8"))
+
+
+### test if take out track segments <50 locs
+# min_obs <- 50 ## set the number of minimum obs acceptable
+# NZ_original <- NZ_original %>% group_by(id)
+# NZ_original <- filter(NZ_original, n() >= min_obs)
+# nrow(NZ_original) #42652
+
 
 
 # tic()
@@ -201,6 +208,9 @@ toc()
 ### BEST TIME STEP: if use 18h time step: converged = FALSE for: 215258-14 [short], 215262-11 [short] - no NAs for logit_g.se
 # if use 18h time step and map = list(rho_o = factor(NA)): converged = FALSE for: 215258-14 [short], 215262-11 [short] - but has NAs for logit_g.se
 #if use 18h time step and drop PTT 215262: converged = FALSE for: 215258-14 [short] - no NAs for logit_g.se
+## if remove segments <50 locs, 18h time step: all converge, and no NAs for logt_g.se
+
+
 
 # id_235399_7 <- NZ_original %>% filter(id == "235399-7")
 # fmp_id_235399_7 <- fit_ssm(id_235399_7, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
@@ -267,6 +277,13 @@ ssm_df_NZ_corrected <- ssm_df_NZ_corrected %>% mutate(lon = if_else(lon > 180, l
 #ssm_df_NZ_corrected <- ssm_df_NZ_corrected %>% filter(!id %in% c("215262-0", "215262-1",  "215262-10", "215262-11", "215262-14", "215262-8"))
 
 
+### test if take out track segments <50 locs
+# min_obs <- 50 ## set the number of minimum obs acceptable
+# ssm_df_NZ_corrected <- ssm_df_NZ_corrected %>% group_by(id)
+# ssm_df_NZ_corrected <- filter(ssm_df_NZ_corrected, n() >= min_obs)
+# nrow(ssm_df_NZ_corrected) #42653
+
+
 #problem was using fit_ssm(model="mp"), need to use fit_mpm(model = "mpm")
 # tic()
 # #fit_mp_12h_NZ_all_current_corrected <- fit_ssm(ssm_df_NZ_corrected, model="mp", control = ssm_control(verbose=0),map = list(psi = factor(NA)))
@@ -301,6 +318,8 @@ toc()
 ##If add 12h time steP: 215259-2 [bit short, but not THAT short], 215261-2 [short], 215262-14 [short] don't converge
 ##If add 18h time steP: 215262-11 [bit short], 215262-14 [bit short] don't converge (some NAs for logit.se)
 ##########if use 18h time step but drop all segments for PTT 215262 - all converge, but NAs for logit_g.se
+## if remove segments <50 locs, 18h time step: all converge, but some NAs for logt_g.se (all for 215258-15)
+
 
 #if drop PTT215262 and run without time step: 197853-2, 215261-2, 235399-7, 235402-1 don't converge, and NAs for logit_g.se
 
