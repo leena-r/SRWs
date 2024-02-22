@@ -238,6 +238,10 @@ summary(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 #values when try Gin suggestion fit_ssm(model=mp)
 #   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.0704  0.7811  0.9061  0.8453  0.9563  0.9991 
+#values when remove segments <50 locs before fit_ssm(model=mp)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.05073 0.78800 0.90980 0.85291 0.96011 0.99914
+
 
 ##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
@@ -247,7 +251,7 @@ fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_S
 #write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_but_mp_on_original_lat_lon.csv'))
 
 ##does already have lat lon if run fit_smm(model_mp)
-#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_original_lat_lon_Gin_fix.csv'))
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_original_lat_lon_Gin_fix_track_segment_50locs.csv'))
 
 
 ###########################################
@@ -339,6 +343,9 @@ summary(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g)
 #values when try Gin suggestion fit_ssm(model=mp)
 #   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.0000  0.7793  0.8882  0.8385  0.9395  0.9939 
+#values when remove <50 locs before fit_ssm(model=mp)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.09881 0.80907 0.89835 0.85551 0.94803 0.99615 
 
 ##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
 fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2 <- fit_mpm_NZ_no_time_step_SSM_but_current_corrected %>% 
@@ -348,7 +355,7 @@ fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2 <- fit_mpm_NZ_no_time_step_
 #write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_but_mp_on_current_corrected.csv'))
 
 ##does already have lat lon if run fit_smm(model_mp)
-#write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_current_corr_lat_lon_Gin_fix.csv'))
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_current_corr_lat_lon_Gin_fix_track_segment_50locs.csv'))
 
 
 
@@ -496,13 +503,35 @@ fit_ssm_OZ_all_no_timestep_p <-  fit_ssm_OZ_all_no_timestep %>% grab(what="fitte
 
 ##########################################################################
 ##run mp on non time step, CRW, locations
-testdf <- read_csv(here::here('SSM', 'data', 'fit_ssm_OZ_all_no_timestep_20240124.csv'))
-testdf2 <- testdf %>% select(id, date, lon, lat)
-nrow(testdf2) #13343
 
-testdf2$lc <- "G"
+OZ_original <- read_csv(here::here('SSM', 'data', 'fit_ssm_OZ_all_no_timestep_20240124_with_current_correction.csv'))
+nrow(OZ_original) #13343 
+
+## what if at this point remove NA cases, to keep things the same?
+##
+OZ_original <- OZ_original[!is.na(OZ_original$lon_correct),]
+nrow(OZ_original) #13012 
+
+OZ_original <- OZ_original %>% 
+  select(id, date, lon, lat) 
+nrow(OZ_original)
+
+##the LC column doesn't matter too much. if don't create it, mp assumes GPS (which is same as creating a lc = G column)
+## lc == GL doesn't work
+OZ_original$lc <- "G"
+
 ##make sure ordered by id and date
-testdf2 <- testdf2[order(testdf2$id, testdf2$date),]
+OZ_original <- OZ_original[order(OZ_original$id, OZ_original$date),]
+
+
+## in NZ data here dropped an odd location for one segment, or drop dodgy segments
+
+## in NZ data here take out segments <50 locs
+ min_obs <- 50 ## set the number of minimum obs acceptable
+ OZ_original <- OZ_original %>% group_by(id)
+ OZ_original <- filter(OZ_original, n() >= min_obs)
+ nrow(OZ_original) #12855
+
 
 # tic()
 # fit_mpm <- fit_mpm(testdf2, 
@@ -512,15 +541,24 @@ testdf2 <- testdf2[order(testdf2$id, testdf2$date),]
 # toc()
 # 
 
+
 ##Gin suggestion, run fit_smm model=mp
-fmp_original_OZ <- fit_ssm(testdf2, model="mp", control = ssm_control(verbose=0), map = list(psi = factor(NA)))
-#had some warnings. track id 235411-1 converged == FALSE
+tic()
+fmp_OZ_original <- fit_ssm(OZ_original, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+toc()
+##first test with no time step, then start adding time steps etc
+#if no time step: all converged = TRUE (even with removing rows with NAs for current corrected columns)
+#if no time step but remove <50 loc: all converged = TRUE
+#with 18h time step: all converged = TRUE
+#with 18h time step and remove <50 loc:
 
 ##save mpm results using the 'original' lat and lon from CRW
-fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon <-  fmp_original_OZ %>% grab(what="fitted")
-#now will have g for each time stamp, no 12h step
-nrow(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon) ##12773 missing data for track id 235411-1 converged == FALSE
-
+fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon <-  fmp_OZ_original %>% grab(what="fitted")
+nrow(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon) # 12442 -- row no has gone down ## 12289 - when remove <50 locs
+## if no time step: no NAs for logit_g.se
+#if no time step but remove <50 loc: no NAs for logit_g.se
+#with 18h time step: no NAs for logit_g.se
+#with 18h time step and remove <50 loc:
 
 ##change some column names if want to join with current corrected data, to avoid duplicated column names
 fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon %>% 
@@ -528,13 +566,87 @@ fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_OZ_no_time_step_SSM_
                 logit_g.se_orig = logit_g.se,
                 g_orig = g)
 
-hist(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon$g_orig) ##looks bit off
+
+hist(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon$g_orig) ## looks bit off 
+##if not time step, no other fixes; 
+##even if <50 (but no time step)
+##maybe a bit better when 18h time step (didn't remove <50 locs) -- still very little at 1.00
 summary(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon$g_orig)
-#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.03305 0.51439 0.65135 0.64579 0.77984 0.98404
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.  -- no time step
+# 0.02103 0.51149 0.64770 0.64522 0.78267 0.98404
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. -- no time step, remove <50
+# 0.1228  0.5115  0.6464  0.6449  0.7800  0.9682 
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. -- 18h step
+# 0.1122  0.5686  0.6976  0.6910  0.8171  0.9847 
 
 ##does already have lat lon if run fit_smm(model_mp)
-#write_csv(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_original_lat_lon_Gin_fix.csv'))
+#write_csv(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_original_lat_lon.csv'))
+
+
+
+
+###########################################
+##run mpm on the current corrected locations
+
+OZ_corrected <- read_csv(here::here('SSM', 'data', 'fit_ssm_OZ_all_no_timestep_20240124_with_current_correction.csv'))
+ssm_df_OZ_corrected <- OZ_corrected %>% 
+  select(id, date, lon_correct, lat_correct) %>% 
+  dplyr::rename(lon = lon_correct, 
+                lat = lat_correct)
+nrow(ssm_df_OZ_corrected) #13343
+
+##few instances of NA for current corrected lat and lon
+ssm_df_OZ_corrected <- ssm_df_OZ_corrected[!is.na(ssm_df_OZ_corrected$lon),]
+nrow(ssm_df_OZ_corrected) #13012
+
+ssm_df_OZ_corrected$lc <- "G"
+
+##make sure ordered by id and date
+ssm_df_OZ_corrected <- ssm_df_OZ_corrected[order(ssm_df_OZ_corrected$id, ssm_df_OZ_corrected$date),]
+
+### correcting lon_corrected from 0-360 degree format to -180 to 180 didn't affect NZ results
+ssm_df_OZ_corrected <- ssm_df_OZ_corrected %>% mutate(lon = if_else(lon > 180, lon-360, lon))
+
+## for NZ data here removed dodgy track segments
+
+### for NZ data here take out track segments <50 locs
+ min_obs <- 50 ## set the number of minimum obs acceptable
+ ssm_df_OZ_corrected <- ssm_df_OZ_corrected %>% group_by(id)
+ ssm_df_OZ_corrected <- filter(ssm_df_OZ_corrected, n() >= min_obs)
+ nrow(ssm_df_OZ_corrected) #12855
+
+
+##Gin suggestion, run fit_smm model=mp
+tic()
+fmp_OZ <- fit_ssm(ssm_df_OZ_corrected, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+toc()
+##if no time step: converged = FALSE for 235621-7 --- has 35 locs
+#if no time step but remove <50 loc: all converged = TRUE
+#with 18h time step: all converged = TRUE
+#with 18h time step and remove <50 loc:
+
+
+##save mpm results using the current corrected lat and lon
+fit_mpm_OZ_no_time_step_SSM_but_current_corrected <-  fmp_OZ %>% grab(what="fitted")
+#if no time step: some Nas for logit_g.se (235414-3)
+#if no time step but remove <50 loc: some NAs for logit_g.se (235414-3)
+#with 18h time step: No NAs for logit_g.se
+#with 18h time step and remove <50 loc:
+nrow(fit_mpm_OZ_no_time_step_SSM_but_current_corrected) #12029 - row no. has gone down ##11878 when also remove <50
+
+hist(fit_mpm_OZ_no_time_step_SSM_but_current_corrected$g) ## looks a bit off
+summary(fit_mpm_OZ_no_time_step_SSM_but_current_corrected$g)
+#  Min. 1st Qu.  Median    Mean   3rd Qu.    Max. -- no time step
+# 0.02566 0.52457 0.65647 0.64848 0.78673 0.98830 
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. -- no time step, remove <50 locs
+# 0.1214  0.5254  0.6571  0.6499  0.7868  0.9549 
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. -- 18h step
+# 0.1229  0.5927  0.7089  0.6970  0.8097  0.9713 
+
+##on a map, current corrected verison has more ARS and therefore doesn't look at good as original lat lon
+
+##does already have lat lon if run fit_smm(model_mp)
+#write_csv(fit_mpm_OZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_current_corr_lat_lon_Gin_fix_.csv'))
 
 
 
