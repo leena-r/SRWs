@@ -152,9 +152,9 @@ NZ_original <- read_csv(here::here('SSM', 'data', 'fit_ssm_NZ_all_no_timestep_20
 nrow(NZ_original) #42947 
 
 ## what if at this point remove NA cases, to keep things the same?
-##removing these cause the additional 235403-0 to not converge, on top of 235399-7
+##removing these cause the additional 235403-0 to not converge, on top of 235399-7 --- THIS WAS WITH OLD DATA
 NZ_original <- NZ_original[!is.na(NZ_original$lon_correct),]
-nrow(NZ_original) #42911 
+nrow(NZ_original) #40952 ##lots 1995 NAs
 
 NZ_original <- NZ_original %>% 
   select(id, date, lon, lat) 
@@ -169,7 +169,7 @@ NZ_original$lc <- "G"
 NZ_original <- NZ_original[order(NZ_original$id, NZ_original$date),]
 
 ##id 235399-7 has one odd location, remove it and see if that helps -- no it did not
-NZ_original <- NZ_original %>% filter(!lon == 146.6288000000011)
+#NZ_original <- NZ_original %>% filter(!lon == 146.6288000000011)
 
 #NZ_original <- NZ_original %>% filter(!id %in% c("215262-0", "215262-1",  "215262-10", "215262-11", "215262-14", "215262-8"))
 
@@ -195,12 +195,16 @@ NZ_original <- NZ_original %>% filter(!lon == 146.6288000000011)
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp_original <- fit_ssm(NZ_original, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+fmp_original <- fit_ssm(NZ_original, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
 toc()
 #"Guessing that all observations are GPS locations" - if no lc column was created
+
+#New file from ali
+# without time step: converged = FALSE for 235399-7 and 235403-0
+
+#
 #without a time step: some warnings, but 235399-7 converged = FALSE - and NAs for logit_g.se
 #and if at the start removed NA locs of corrected alt and lon also 235403-0 didn't converge - and NAs for logit_g.se
-
 ##if use 6h time step - 7 segments that don't converge, and NAs for logit.se
 ##if use 12h time step: converged = FALSE for: 208742-2, 215258-0, 215259-1, 215261-2, 215262-11, 235401-2, and NAs for logit.se
 ## same if use 12h time step an no map=list argument
@@ -225,6 +229,9 @@ fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <-  fmp_original %>% grab(what=
 nrow(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon) #42947 
 ##40829 when try Gin suggestion of fit_smm(model=mp) and only 235399-7 converged = FALSE 
 ##39507 when try Gin suggestion of fit_smm(model=mp) and 235399-7 and 235403-0 converged = FALSE 
+#New data from Ali
+#if no time step: couple NAs for 215258-9
+
 ##change some column names if want to join with current corrected data, to avoid duplicated column names
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
   dplyr::rename(logit_g_orig = logit_g,
@@ -232,6 +239,7 @@ fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_NZ_no_time_step_SSM_
                 g_orig = g)
 
 hist(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
+##new data from Ali, hist and values looks ok
 summary(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 #   sMin. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.00738 0.73699 0.88641 0.81413 0.95290 0.99918 
@@ -266,7 +274,7 @@ nrow(ssm_df_NZ_corrected) #42947
 
 ##few instances of NA for current corrected lat and lon
 ssm_df_NZ_corrected <- ssm_df_NZ_corrected[!is.na(ssm_df_NZ_corrected$lon),]
-nrow(ssm_df_NZ_corrected) #42911
+nrow(ssm_df_NZ_corrected) #42911 new data from Ali: 40952
 
 ssm_df_NZ_corrected$lc <- "G"
 
@@ -308,9 +316,12 @@ ssm_df_NZ_corrected <- ssm_df_NZ_corrected %>% mutate(lon = if_else(lon > 180, l
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
 toc()
 #Guessing that all observations are GPS locations. -- if didn't create a lc = G column earlier
+###New data from ali
+#if no time step: converged=FALSE for 208742-2, 235399-7, 235401-2 -- only 4 NAs for 46950-0
+
 #some warnings,  converged=FALSE for 197853-2, 215261-2, 215262-14, 235399-7, 235402-1, and NAs for logit_g.se
 ##same converged=FALSE if create a lc=G column before running fit_smm
 ##all fail to converge if create a lc=GL column before running fit_smm
@@ -557,7 +568,7 @@ fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon <-  fmp_OZ_original %>% grab(wh
 nrow(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon) # 12442 -- row no has gone down ## 12289 - when remove <50 locs
 ## if no time step: no NAs for logit_g.se
 #if no time step but remove <50 loc: no NAs for logit_g.se
-#with 18h time step: no NAs for logit_g.se
+#with 18h time step: no NAs for logit_g.se --- but doesn't actually force a time step
 #with 18h time step and remove <50 loc:
 
 ##change some column names if want to join with current corrected data, to avoid duplicated column names
@@ -630,7 +641,7 @@ toc()
 fit_mpm_OZ_no_time_step_SSM_but_current_corrected <-  fmp_OZ %>% grab(what="fitted")
 #if no time step: some Nas for logit_g.se (235414-3)
 #if no time step but remove <50 loc: some NAs for logit_g.se (235414-3)
-#with 18h time step: No NAs for logit_g.se
+#with 18h time step: No NAs for logit_g.se -- but hasn't forced 18h
 #with 18h time step and remove <50 loc:
 nrow(fit_mpm_OZ_no_time_step_SSM_but_current_corrected) #12029 - row no. has gone down ##11878 when also remove <50
 
