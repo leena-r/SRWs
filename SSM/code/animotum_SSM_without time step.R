@@ -588,7 +588,7 @@ OZ_original <- OZ_original[order(OZ_original$id, OZ_original$date),]
  min_obs <- 50 ## set the number of minimum obs acceptable
  OZ_original <- OZ_original %>% group_by(id)
  OZ_original <- filter(OZ_original, n() >= min_obs)
- nrow(OZ_original) #12855
+ nrow(OZ_original) #13168
 
 
 # tic()
@@ -602,16 +602,19 @@ OZ_original <- OZ_original[order(OZ_original$id, OZ_original$date),]
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp_OZ_original <- fit_ssm(OZ_original, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
-toc()
+fmp_OZ_original <- fit_ssm(OZ_original, model="mp", time.step=12, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+toc() ##1-2min
 ##first test with no time step, then start adding time steps etc
 ##new data from Ali after fixing NAs
 #if no time step:  converged = FALSE for 235411-1 (OZ coastal, pretty short) -- no NAs
+#if no time step and remove <50 loc: all converged -- no NAs
+#if 12h time step and remove <50 loc: all converged -- no NAs
+
 
 #previous version:
 #if no time step but remove <50 loc: all converged = TRUE
 #with 18h time step: all converged = TRUE
-#with 18h time step and remove <50 loc:
+
 
 ##save mpm results using the 'original' lat and lon from CRW
 fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon <-  fmp_OZ_original %>% grab(what="fitted")
@@ -641,7 +644,7 @@ summary(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 # 0.1122  0.5686  0.6976  0.6910  0.8171  0.9847 
 
 ##does already have lat lon if run fit_smm(model_mp)
-#write_csv(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_original_lat_lon.csv'))
+#write_csv(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_original_lat_lon_50loc_12h.csv'))
 
 
 
@@ -674,20 +677,22 @@ ssm_df_OZ_corrected <- ssm_df_OZ_corrected %>% mutate(lon = if_else(lon > 180, l
  min_obs <- 50 ## set the number of minimum obs acceptable
  ssm_df_OZ_corrected <- ssm_df_OZ_corrected %>% group_by(id)
  ssm_df_OZ_corrected <- filter(ssm_df_OZ_corrected, n() >= min_obs)
- nrow(ssm_df_OZ_corrected) #12855
+ nrow(ssm_df_OZ_corrected) #13168
 
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp_OZ <- fit_ssm(ssm_df_OZ_corrected, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+fmp_OZ <- fit_ssm(ssm_df_OZ_corrected, model="mp", time.step=12, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
 toc()
 ##Ali new datafile:
 ##if no time step: converged = FALSE for 235407-2 and 235621-7 -- Some NAs for 235621-7, 1 NA for 235412-8
+#if no time step and remove <50 loc: converged = FALSE for 235407-2 --- 1 NA for 235412-8
+#if 12h time step and remove <50 loc: all converged --- no NAs
 
 #previous version
 #if no time step but remove <50 loc: all converged = TRUE
 #with 18h time step: all converged = TRUE
-#with 18h time step and remove <50 loc:
+
 
 
 ##save mpm results using the current corrected lat and lon
@@ -710,7 +715,7 @@ summary(fit_mpm_OZ_no_time_step_SSM_but_current_corrected$g)
 ##on a map, current corrected verison has more ARS and therefore doesn't look at good as original lat lon
 
 ##does already have lat lon if run fit_smm(model_mp)
-#write_csv(fit_mpm_OZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_current_corr_lat_lon_Gin_fix_.csv'))
+#write_csv(fit_mpm_OZ_no_time_step_SSM_but_current_corrected,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_current_corr_lat_lon_50loc_12h.csv'))
 
 
 
