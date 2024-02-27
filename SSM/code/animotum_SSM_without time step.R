@@ -175,9 +175,9 @@ NZ_original <- NZ_original[order(NZ_original$id, NZ_original$date),]
 
 
 ### test if take out track segments <50 locs
-# min_obs <- 50 ## set the number of minimum obs acceptable
-# NZ_original <- NZ_original %>% group_by(id)
-# NZ_original <- filter(NZ_original, n() >= min_obs)
+ min_obs <- 50 ## set the number of minimum obs acceptable
+ NZ_original <- NZ_original %>% group_by(id)
+ NZ_original <- filter(NZ_original, n() >= min_obs)
 # nrow(NZ_original) #42652
 
 
@@ -201,6 +201,9 @@ toc() #~7-10min
 
 #New file from ali, and after fixing NAs
 # without time step: converged = FALSE for 235399-7 (Few Nas for SE 215258-9)
+# 12h time step, <50 removed [worked for OZ data]: converged = FALSE for 215258-0 and 235401-2
+# 18h time step, <50 removed: all converged -- no NAs
+
 
 #'original' data file and extraction from Ali
 #without a time step: some warnings, but 235399-7 converged = FALSE - and NAs for logit_g.se
@@ -354,13 +357,18 @@ ssm_df_NZ_corrected <- ssm_df_NZ_corrected[order(ssm_df_NZ_corrected$id, ssm_df_
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", time.step=12, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
 toc()
 #Guessing that all observations are GPS locations. -- if didn't create a lc = G column earlier
 ###New data from ali (and fixed NAs)
 #if no time step: converged=FALSE for 208742-2, 235399-7, 235401-2 -- few NAs for 3 segments
 #if no time step but remove <50 locs: converged=FALSE for 235399-7, 235401-2 -- few NAs for 3 segments
+  #12h, remove <50 locs, and only 2020 tags: all converge -- no NAs
+  #12h, remove <50 locs, and only 2021 tags: all converge -- no NAs
+  #12h, remove <50 locs, and only 2022 tags: converged = FALSE for 235400-0, 235401-2, 235404-1 -- bunch of NAs
 #if 18h time step and remove <50 locs: converged=FALSE for 235401-2 and 46950-0 -- bunch of NA
+#if 24h time step and remove <50 locs: converged=FALSE for 235400-0 -- sone NAs (mostly for 215259-0)
+#if 36h time step and remove <50 locs: converged=FALSE for 235401-2 -- sone NAs (for 215261-0)
 #if break 24h gap, short <25, no time step, converged = FALSE for 235399-2 and 235401-0
 #if break 24h gap, short <50, no time step, converged = FALSE for 235399-2 and 235401-0 (only a couple of NAs)
 #if break 24h gap, short <50, 12h step, converged = FALSE for 215258-5, 235400-0, 235401-0, 235404-0
