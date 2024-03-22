@@ -201,7 +201,11 @@ toc() #~7-10min
 
 #New file from ali, and after fixing NAs
 # without time step: converged = FALSE for 235399-7 (Few Nas for SE 215258-9)
+    #if drop 235399-7 segment, then all converge -- and no NAs
 # 12h time step, <50 removed [worked for OZ data]: converged = FALSE for 215258-0 and 235401-2
+    # if  remove 235401-2 then: converged = FALSE for 215258-0
+    # if  remove 215258-0 then: converged = FALSE for 235401-2
+    # if  remove both 235401-2 (good long track) and 215258-0 (short track) then: all converged -- 3 NAs for 215261-0
 # 18h time step, <50 removed: all converged -- no NAs
 
 
@@ -363,10 +367,17 @@ toc()
 ###New data from ali (and fixed NAs)
 #if no time step: converged=FALSE for 208742-2, 235399-7, 235401-2 -- few NAs for 3 segments
 #if no time step but remove <50 locs: converged=FALSE for 235399-7, 235401-2 -- few NAs for 3 segments
+    #if remove '235400-0', '235401-2', '235404-1': converged=FALSE for 235399-7 -- few NAs for 3 segments
+    #if remove  '235399-7', '235401-2': all converge -- few NAs for 3 segments
   #12h, remove <50 locs, and only 2020 tags: all converge -- no NAs
   #12h, remove <50 locs, and only 2021 tags: all converge -- no NAs
   #12h, remove <50 locs, and only 2022 tags: converged = FALSE for 235400-0, 235401-2, 235404-1 -- bunch of NAs
-#if 18h time step and remove <50 locs: converged=FALSE for 235401-2 and 46950-0 -- bunch of NA
+    ## if 12h, remove <50 locs, and only 2022 tags AND drop the above 3 problem segments: all converge -- no NAs (but lose some good tracks)
+    ## if 12h, remove <50 locs, and only 2022 tags AND drop 235401-2, 235404-1: converged = FALSE for 235400-0 -- no NAs 
+    ## if 12h, remove <50 locs, and only 2022 tags AND drop 235400-0, 235404-1: converged = FALSE for 235401-2 -- NAs for 235401-2
+    ## if 12h, remove <50 locs, and only 2022 tags AND drop 235400-0, 235401-2: converged = FALSE for 235404-1 -- no NAs 
+
+#if 18h time step and remove <50 locs: converged=FALSE for 235401-2 and 46950-0 -- bunch of NA 
 #if 24h time step and remove <50 locs: converged=FALSE for 235400-0 -- sone NAs (mostly for 215259-0)
 #if 36h time step and remove <50 locs: converged=FALSE for 235401-2 -- sone NAs (for 215261-0)
 #if break 24h gap, short <25, no time step, converged = FALSE for 235399-2 and 235401-0
@@ -614,7 +625,8 @@ fmp_OZ_original <- fit_ssm(OZ_original, model="mp", time.step=12, control = ssm_
 toc() ##1-2min
 ##first test with no time step, then start adding time steps etc
 ##new data from Ali after fixing NAs
-#if no time step:  converged = FALSE for 235411-1 (OZ coastal, pretty short) -- no NAs
+#if no time step:  converged = FALSE for 235411-1 (OZ coastal, pretty short) -- no NAs (this is using <20 loc segments)
+    # when tried no time step on 20240322 all converged, but difference was cutting out <50 loc segments
 #if no time step and remove <50 loc: all converged -- no NAs
 #if 12h time step and remove <50 loc: all converged -- no NAs
 
@@ -694,7 +706,8 @@ fmp_OZ <- fit_ssm(ssm_df_OZ_corrected, model="mp", time.step=12, control = ssm_c
 toc()
 ##Ali new datafile:
 ##if no time step: converged = FALSE for 235407-2 and 235621-7 -- Some NAs for 235621-7, 1 NA for 235412-8
-#if no time step and remove <50 loc: converged = FALSE for 235407-2 --- 1 NA for 235412-8
+#if no time step and remove <50 loc: converged = FALSE for 235407-2 (good Antarctic trac) --- 1 NA for 235412-8
+    # if drop 235407-2 then: all converged --- 1 NA -- but it is a good Antarctic track
 #if 12h time step and remove <50 loc: all converged --- no NAs
 
 #previous version
