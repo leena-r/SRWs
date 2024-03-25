@@ -191,11 +191,11 @@ NZ_original <- NZ_original[order(NZ_original$id, NZ_original$date),]
 ##no errors/FALSE when run fit_mpm on 'original' lat and lon
 
 
-
+ NZ_original <- NZ_original %>% filter(id != "235399-7")
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp_original <- fit_ssm(NZ_original, model="mp", time.step=18, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+fmp_original <- fit_ssm(NZ_original, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
 toc() #~7-10min
 #"Guessing that all observations are GPS locations" - if no lc column was created
 
@@ -247,6 +247,7 @@ fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon <- fit_mpm_NZ_no_time_step_SSM_
 
 hist(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 ##new data from Ali, hist and values looks ok
+#looks ok when <50 loc removed, 235399-7 removed, and no time step
 summary(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 #   sMin. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.00738 0.73699 0.88641 0.81413 0.95290 0.99918 
@@ -256,7 +257,9 @@ summary(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 #values when remove segments <50 locs before fit_ssm(model=mp)
 #   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.05073 0.78800 0.90980 0.85291 0.96011 0.99914
-
+###when <50 loc removed, 235399-7 removed, and no time step
+# Min.  1st Qu.   Median    Mean 3rd Qu.    Max. 
+# 0.0704  0.7813  0.9062  0.8455  0.9564  0.9991 
 
 ##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
 fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon %>% 
@@ -266,7 +269,7 @@ fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2 <- fit_mpm_NZ_no_time_step_S
 #write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon_v2,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_but_mp_on_original_lat_lon.csv'))
 
 ##does already have lat lon if run fit_smm(model_mp)
-#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_original_lat_lon_Gin_fix_track_segment_50locs.csv'))
+#write_csv(fit_mpm_NZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_original_lat_lon_50loc_1segremoved_notimestep_20240325.csv'))
 
 
 ###########################################
@@ -358,10 +361,12 @@ ssm_df_NZ_corrected <- ssm_df_NZ_corrected[order(ssm_df_NZ_corrected$id, ssm_df_
 #View(fmp)
 #but converged == FALSE: NONE
 
+ 
+ ssm_df_NZ_corrected <- ssm_df_NZ_corrected %>% filter(!id %in% c('235399-7', '235401-2'))
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", time.step=12, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+fmp <- fit_ssm(ssm_df_NZ_corrected, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
 toc()
 #Guessing that all observations are GPS locations. -- if didn't create a lc = G column earlier
 ###New data from ali (and fixed NAs)
@@ -413,6 +418,7 @@ fit_mpm_NZ_no_time_step_SSM_but_current_corrected <-  fmp %>% grab(what="fitted"
 nrow(fit_mpm_NZ_no_time_step_SSM_but_current_corrected) #42911  ##34210 after Gin suggestion fit_smm(model_mp)
 
 hist(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g) ##looks bit odd still -- looks better with fit_smm(model_mp)
+##looks ok when <50 locs, drop '235399-7', '235401-2', no time step
 summary(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g)
 # after Gins fix of removing nAs etc
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -423,6 +429,9 @@ summary(fit_mpm_NZ_no_time_step_SSM_but_current_corrected$g)
 #values when remove <50 locs before fit_ssm(model=mp)
 #   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.09881 0.80907 0.89835 0.85551 0.94803 0.99615 
+##when <50 locs, drop '235399-7', '235401-2', no time step
+#   Min.  1st Qu.  Median    Mean   3rd Qu.  Max. 
+# 0.05096 0.77659 0.90768 0.84577 0.95673 0.99818 
 
 ##the fit_mpm object doesn't have lat and lon columns, join from pre fit_mpm data
 fit_mpm_NZ_no_time_step_SSM_but_current_corrected_v2 <- fit_mpm_NZ_no_time_step_SSM_but_current_corrected %>% 
@@ -621,7 +630,7 @@ OZ_original <- OZ_original[order(OZ_original$id, OZ_original$date),]
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp_OZ_original <- fit_ssm(OZ_original, model="mp", time.step=12, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+fmp_OZ_original <- fit_ssm(OZ_original, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
 toc() ##1-2min
 ##first test with no time step, then start adding time steps etc
 ##new data from Ali after fixing NAs
@@ -662,6 +671,9 @@ summary(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon$g_orig)
 # 0.1228  0.5115  0.6464  0.6449  0.7800  0.9682 
 #   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. -- 18h step
 # 0.1122  0.5686  0.6976  0.6910  0.8171  0.9847 
+##no time step, remove <50 (slighty different from above?)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.1228  0.5152  0.6508  0.6459  0.7794  0.9704 
 
 ##does already have lat lon if run fit_smm(model_mp)
 #write_csv(fit_mpm_OZ_no_time_step_SSM_but_original_lat_lon,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_original_lat_lon_50loc_12h.csv'))
@@ -689,7 +701,7 @@ ssm_df_OZ_corrected$lc <- "G"
 ssm_df_OZ_corrected <- ssm_df_OZ_corrected[order(ssm_df_OZ_corrected$id, ssm_df_OZ_corrected$date),]
 
 ### correcting lon_corrected from 0-360 degree format to -180 to 180 didn't affect NZ results
-ssm_df_OZ_corrected <- ssm_df_OZ_corrected %>% mutate(lon = if_else(lon > 180, lon-360, lon))
+#ssm_df_OZ_corrected <- ssm_df_OZ_corrected %>% mutate(lon = if_else(lon > 180, lon-360, lon))
 
 ## for NZ data here removed dodgy track segments
 
@@ -699,10 +711,11 @@ ssm_df_OZ_corrected <- ssm_df_OZ_corrected %>% mutate(lon = if_else(lon > 180, l
  ssm_df_OZ_corrected <- filter(ssm_df_OZ_corrected, n() >= min_obs)
  nrow(ssm_df_OZ_corrected) #13168
 
+ ssm_df_OZ_corrected <- ssm_df_OZ_corrected %>% filter(id != "235407-2")
 
 ##Gin suggestion, run fit_smm model=mp
 tic()
-fmp_OZ <- fit_ssm(ssm_df_OZ_corrected, model="mp", time.step=12, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
+fmp_OZ <- fit_ssm(ssm_df_OZ_corrected, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##
 toc()
 ##Ali new datafile:
 ##if no time step: converged = FALSE for 235407-2 and 235621-7 -- Some NAs for 235621-7, 1 NA for 235412-8
@@ -724,7 +737,7 @@ fit_mpm_OZ_no_time_step_SSM_but_current_corrected <-  fmp_OZ %>% grab(what="fitt
 #with 18h time step and remove <50 loc:
 nrow(fit_mpm_OZ_no_time_step_SSM_but_current_corrected) #12029 - row no. has gone down ##11878 when also remove <50
 
-hist(fit_mpm_OZ_no_time_step_SSM_but_current_corrected$g) ## looks a bit off
+hist(fit_mpm_OZ_no_time_step_SSM_but_current_corrected$g) ## looks a bit off - even when <50 locs
 summary(fit_mpm_OZ_no_time_step_SSM_but_current_corrected$g)
 #  Min. 1st Qu.  Median    Mean   3rd Qu.    Max. -- no time step
 # 0.02566 0.52457 0.65647 0.64848 0.78673 0.98830 
@@ -732,6 +745,9 @@ summary(fit_mpm_OZ_no_time_step_SSM_but_current_corrected$g)
 # 0.1214  0.5254  0.6571  0.6499  0.7868  0.9549 
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. -- 18h step
 # 0.1229  0.5927  0.7089  0.6970  0.8097  0.9713 
+## when <50 locs, remove 235407-2, no time step
+# Min.  1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.1596  0.5305  0.6656  0.6587  0.7899  0.9645 
 
 ##on a map, current corrected verison has more ARS and therefore doesn't look at good as original lat lon
 
