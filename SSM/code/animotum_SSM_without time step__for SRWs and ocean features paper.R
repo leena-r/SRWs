@@ -122,7 +122,7 @@ raw_argos_df <- raw_argos_df[order(raw_argos_df$id, raw_argos_df$date),]
 
 #Time difference between successive locations
 
-time_diff_hours_df <- ddply(filtered_argos_df, ~id, function(d){
+time_diff_hours_df <- ddply(raw_argos_df, ~id, function(d){
   d$time_diff_hours <- NA
   for (i in 2:nrow(d)){
     d$time_diff_hours[i] = as.numeric(difftime(d$date[i], d$date[i-1], units = "hours"))}
@@ -197,10 +197,24 @@ ssm_df <- ssm_df %>%
 #https://ianjonsen.github.io/aniMotum/reference/fit_ssm.html
 #also use model = mp at the same time 
 ###testing done in script 'animotum_SSM_without time step' for testing current corrections
-##first ran without mp, did current correction, then did mp --- now jsut do mp
+##first ran without mp, did current correction, then did mp --- now just do mp at the same time
 #speed filter threshold (vmax) of 5 ms−1 - same as before
+
+##if 36h and <50locs
 ##Warning message: The optimiser failed. You could try using a different time.step or turn off prefiltering with `spdf = FALSE` 
 ##but after added duplicate removal and speed filtering steps then SSM/MP converges
+##actually removed those steps and added speed filter to fit_smm, then it worked? -- as long as remove map argument
+
+##if 36h and <50locs, drop 46635-0, with map argument -- all converge -- but doesnt look good in QGIS - lots of long ARS sections south of Akl Is
+##if 36h and <50locs, drop 46635-0, without map argument -- all converge -- looks ok in QGIS - 1 long ARS sections south of Akl Is
+
+
+########if 24h and <50 loc and no map argument, some issues and non convergence. 
+#if add map argument 46635-0 doesn't converge
+##if drop 46635-0 some warnings but all converge
+
+ssm_df <- ssm_df %>% filter(id != "46635-0")
+
 tic()
 fit_ssm_mp_NZ_all_no_timestep <- fit_ssm(ssm_df, vmax=5, model="mp", time.step=NA, control = ssm_control(verbose=0)) ##, map = list(psi = factor(NA))
 toc()
@@ -215,15 +229,19 @@ nrow(fit_ssm_mp_NZ_all_no_timestep_mp) #42764
 
 hist(fit_ssm_mp_NZ_all_no_timestep_mp$g)
 ##not perfect looking but ok
+##if 36h, <50locs, drop 46635-0 and no map argument, then looks good
 
 
 summary(fit_ssm_mp_NZ_all_no_timestep_mp$g)
+##36h <50loc
 #   Min.  1st Qu.   Median    Mean 3rd Qu.    Max. 
 # 0.04657 0.49008 0.64925 0.62877 0.78876 0.96255
+##if 36h, <50locs, drop 46635-0 and no map argument
+#   Min.  1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.01052 0.75508 0.87344 0.82387 0.93712 0.99495 
 
 
-
-#write_csv(fit_ssm_mp_NZ_all_no_timestep_mp,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_mp__20240326.csv'))
+#write_csv(fit_ssm_mp_NZ_all_no_timestep_mp,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_mp_36h_50loc_1segmentremoved__20240328.csv'))
 
 
 
