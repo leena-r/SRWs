@@ -220,6 +220,21 @@ fit_ssm_mp_NZ_all_no_timestep <- fit_ssm(ssm_df, vmax=5, model="mp", time.step=N
 toc()
 ##vmax=5, 
 
+#res.rw <- osar(fit_ssm_mp_NZ_all_no_timestep) ##2h42min
+# Warning message:
+#   In asMethod(object) :
+#   sparse->dense coercion: allocating vector of size 1.0 GiB
+####write_rds(res.rw,here::here('SSM', 'data', 'res_rw_1stepapproach.rds'))
+# # use patchwork package to arrange plot.osar options
+# require(patchwork)
+# # calculate & plot residuals
+# res.rw <- osar(fit.rw)
+# test <- res.rw %>% filter(id == "215261-0")
+# (plot(test, type = "ts") | plot(test, type = "qq")) / 
+#   (plot(test, type = "acf") | plot_spacer())
+
+
+
 fit_ssm_mp_NZ_all_no_timestep_mp <-  fit_ssm_mp_NZ_all_no_timestep %>% grab(what="fitted")
 ##no NAs for se
 
