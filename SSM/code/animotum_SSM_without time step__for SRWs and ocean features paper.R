@@ -473,7 +473,60 @@ summary(fit_ssm_mp_OZ_all_no_timestep_mp$g)
 
 
 
-#write_csv(fit_ssm_mp_OZ_all_no_timestep_mp,here::here('SSM', 'data', 'test_fit_mpm_OZ_no_time_step_SSM_mp__20240326.csv'))
+#write_csv(fit_ssm_mp_OZ_all_no_timestep_mp,here::here('SSM', 'data', 'FINAL_fit_mpm_OZ_no_time_step_SSM_mp_1step__20240403.csv'))
+
+
+
+
+# require(patchwork)
+# # calculate & plot residuals
+#tic
+#res.rw <- osar(fit_ssm_mp_OZ_all_no_timestep) ##~1.5h
+#toc
+
+####write_rds(res.rw,here::here('SSM', 'data', 'FINAL_fit_OZ_no_time_step_SSM_mp_36h_50loc_1step__20240403_RESIDUALS.rds'))
+
+
+# test <- res.rw %>% filter(id == "197853-1")
+# (plot(test, type = "ts") | plot(test, type = "qq")) / 
+#   (plot(test, type = "acf") | plot_spacer())
+
+
+ids <- unique(res.rw$id)
+
+plot_list = list()
+for (i in ids) {
+  test <- res.rw %>% filter(id == i)
+  p1 <- (plot(test, type = "ts") | plot(test, type = "qq")) / 
+    (plot(test, type = "acf") | plot_spacer())
+  plot_list[[i]] = p1
+}
+
+for (i in ids) {
+  file_name = paste("plot_", i, ".tiff", sep="")
+  tiff(file_name, units="in", width=7, height=5, res=300)
+  print(plot_list[[i]])
+  dev.off()
+}
+
+pdf("plots.pdf")
+for (i in ids) {
+  print(plot_list[[i]])
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
