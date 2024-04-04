@@ -211,7 +211,7 @@ ssm_df <- ssm_df %>%
 
 ########if 24h and <50 loc and no map argument, some issues and non convergence. 
 #if add map argument 46635-0 doesn't converge
-##if drop 46635-0 some warnings but all converge
+##if drop 46635-0 some warnings but all converge -- seems to converge with or without map (with map no warnings)
 ### the 1-step approach
 
 ssm_df <- ssm_df %>% filter(id != "46635-0")
@@ -220,21 +220,7 @@ tic()
 fit_ssm_mp_NZ_all_no_timestep <- fit_ssm(ssm_df, vmax=5, model="mp", time.step=NA, control = ssm_control(verbose=0)) ##, map = list(psi = factor(NA))
 toc()
 ##vmax=5, 
-
-#res.rw <- osar(fit_ssm_mp_NZ_all_no_timestep) ##2h42min
-# Warning message:
-#   In asMethod(object) :
-#   sparse->dense coercion: allocating vector of size 1.0 GiB
-####write_rds(res.rw,here::here('SSM', 'data', 'res_rw_1stepapproach.rds'))
-# # use patchwork package to arrange plot.osar options
-# require(patchwork)
-# # calculate & plot residuals
-# res.rw <- osar(fit.rw)
-# test <- res.rw %>% filter(id == "215261-0")
-# (plot(test, type = "ts") | plot(test, type = "qq")) / 
-#   (plot(test, type = "acf") | plot_spacer())
-
-
+#fit_ssm_mp_NZ_all_no_timestep_with_map
 
 fit_ssm_mp_NZ_all_no_timestep_mp <-  fit_ssm_mp_NZ_all_no_timestep %>% grab(what="fitted")
 ##no NAs for se
@@ -246,6 +232,7 @@ nrow(fit_ssm_mp_NZ_all_no_timestep_mp) #42764
 hist(fit_ssm_mp_NZ_all_no_timestep_mp$g)
 ##not perfect looking but ok
 ##if 36h, <50locs, drop 46635-0 and no map argument, then looks good
+#with map argument look less good
 
 
 summary(fit_ssm_mp_NZ_all_no_timestep_mp$g)
@@ -255,9 +242,60 @@ summary(fit_ssm_mp_NZ_all_no_timestep_mp$g)
 ##if 36h, <50locs, drop 46635-0 and no map argument
 #   Min.  1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.01052 0.75508 0.87344 0.82387 0.93712 0.99495 
+##if 36h, <50locs, drop 46635-0 and WITH map argument
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.01054 0.48237 0.64168 0.62328 0.78188 0.96440 
+
+#write_csv(fit_ssm_mp_NZ_all_no_timestep_mp,here::here('SSM', 'data', 'FINAL_fit_NZ_no_time_step_SSM_mp_36h_50loc_1segmentremoved_nomap_1step__20240328.csv'))
 
 
-#write_csv(fit_ssm_mp_NZ_all_no_timestep_mp,here::here('SSM', 'data', 'test_fit_mpm_NZ_no_time_step_SSM_mp_36h_50loc_1segmentremoved__20240328.csv'))
+# require(patchwork)
+# # calculate & plot residuals
+#tic
+#res.rw <- osar(fit_ssm_mp_NZ_all_no_timestep) ##~3h
+#toc
+####write_rds(res.rw,here::here('SSM', 'data', 'FINAL_fit_NZ_no_time_step_SSM_mp_36h_50loc_1segmentremoved_nomap_1step__20240403_RESIDUALS.rds'))
+# test <- res.rw %>% filter(id == "197853-1")
+# (plot(test, type = "ts") | plot(test, type = "qq")) / 
+#   (plot(test, type = "acf") | plot_spacer())
+
+
+library(patchwork)
+ids <- unique(res.rw$id)
+
+plot_list = list()
+for (i in ids) {
+  test <- res.rw %>% filter(id == i)
+  p1 <- (plot(test, type = "ts") | plot(test, type = "qq")) / 
+    (plot(test, type = "acf") | plot_spacer())
+  plot_list[[i]] = p1
+}
+
+for (i in ids) {
+  file_name = paste("plot_", i, ".tiff", sep="")
+  tiff(file_name, units="in", width=7, height=5, res=300)
+  print(plot_list[[i]])
+  dev.off()
+}
+
+pdf("plots_1step_with_map.pdf")
+for (i in ids) {
+  print(plot_list[[i]])
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
