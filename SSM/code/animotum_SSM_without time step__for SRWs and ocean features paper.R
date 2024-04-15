@@ -559,14 +559,7 @@ for (i in ids) {
 
 
 
-
-
-
-
-
-
-
-
+#######################################
 
 
 ##the 2-step approach
@@ -629,4 +622,70 @@ pdf("plots.pdf")
 for (i in ids) {
   print(plot_list[[i]])
 }
+
+#########################################
+
+## the [] selects a track segment
+st <- sim_fit(fit_ssm_mp_OZ_all_no_timestep, what="fitted", reps=20)
+
+st <- sim_fit(fit_ssm_mp_OZ_all_no_timestep[1,], what = "fitted", reps = 50)
+
+# filter, keep only top 20 %
+st_f <- sim_filter(st, keep = 0.2, flag = 2)
+
+
+
+
+
+### maybe need a SSM objet without mp
+tic()
+fit_ssm_test <- fit_ssm(ssm_df, vmax=5, model="crw", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##, map = list(psi = factor(NA))
+toc()
+
+
+
+st <- sim_fit(fit_ssm_test, what="fitted", reps=20)
+plot(st[1,])
+st_f <- sim_filter(st, keep = 0.2, flag = 2)
+plot(st_f[1,])
+
+
+
+
+
+load(system.file("extdata/grad.rda", package = "aniMotum"))
+grad <- terra::unwrap(grad)
+
+set.seed(pi)
+st.pf <- sim_fit(fit_ssm_test[1, ], what = "fitted", reps=5, grad=grad, beta=c(-300,-300))
+
+plot(st.pf)
+
+
+xx <-  st.pf[[3]][[1]]
+xx$id <- "235405-1"
+
+#write_csv(xx,here::here('SSM', 'data', 'xxsimulation_test.csv'))
+
+xx <- xx %>% filter(rep != 0)
+
+xx$id2 <- paste(xx$id,xx$rep)
+
+xx  <- xx %>% select(-id)
+
+xx <- xx %>% rename(id = id2)
+
+fit_ssm_xx <- fit_ssm(xx, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##, map = list(psi = factor(NA))
+
+fit_ssm_xx_mp <-  fit_ssm_xx %>% grab(what="fitted")
+
+hist(fit_ssm_xx_mp$g)
+summary(fit_ssm_xx_mp$g)
+
+#write_csv(fit_ssm_xx_mp,here::here('SSM', 'data', 'fit_ssm_xx_mp_simulation_test.csv'))
+
+
+
+
+
 
