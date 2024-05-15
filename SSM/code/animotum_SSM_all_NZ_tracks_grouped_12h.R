@@ -1220,3 +1220,234 @@ raw_argos_df <- rbind(all_ptt_2021,all_ptt_2022,all_ptt_2023)
 
 
 
+
+######################################################################################
+######################################################################################
+########################### ARGENTINA TRACKS  #######################################
+######################################################################################
+######################################################################################
+
+#combine Argentina data into one master file
+#all tags done transmitting (not including 2023 data here)
+
+##ARG 2014
+Ptt84482_raw <- read_csv(here::here('tag data', 'Argentina', '2014', '84482', "84482-Locations.csv"))
+Ptt84498_raw <- read_csv(here::here('tag data', 'Argentina', '2014', '84498', "84498-Locations.csv"))
+Ptt87637_raw <- read_csv(here::here('tag data', 'Argentina', '2014', '87637', "87637-Locations.csv"))
+Ptt112730_raw <- read_csv(here::here('tag data', 'Argentina', '2014', '112730', "112730-Locations.csv"))
+Ptt120950_raw <- read_csv(here::here('tag data', 'Argentina', '2014', '120950', "120950-Locations.csv"))
+
+
+all_ptt_2014 <- bind_rows(Ptt84482_raw, Ptt84498_raw, Ptt87637_raw, Ptt112730_raw,Ptt120950_raw)
+
+#Only keep desired columns
+all_ptt_2014 <- all_ptt_2014 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2014 <- all_ptt_2014 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2014$cohort <- 2014
+
+
+
+##ARG 2015
+Ptt112728_raw <- read_csv(here::here('tag data', 'Argentina', '2015', '112728', "112728-Locations.csv"))
+Ptt120942_raw <- read_csv(here::here('tag data', 'Argentina', '2015', '120942', "120942-Locations.csv"))
+Ptt121191_raw <- read_csv(here::here('tag data', 'Argentina', '2015', '121191', "121191-Locations.csv"))
+Ptt121197_raw <- read_csv(here::here('tag data', 'Argentina', '2015', '121197', "121197-Locations.csv"))
+Ptt121198_raw <- read_csv(here::here('tag data', 'Argentina', '2015', '121198', "121198-Locations.csv"))
+
+all_ptt_2015 <- bind_rows(Ptt112728_raw, Ptt120942_raw, Ptt121191_raw, Ptt121197_raw, Ptt121198_raw)
+
+
+#Only keep desired columns
+all_ptt_2015 <- all_ptt_2015 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2015 <- all_ptt_2015 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2015$cohort <- 2015
+
+
+
+##ARG 2016
+Ptt81123_raw <- read_csv(here::here('tag data', 'Argentina', '2016', '81123', "81123-Locations.csv"))
+
+
+all_ptt_2016 <- bind_rows(Ptt81123_raw)
+
+
+
+#Only keep desired columns
+all_ptt_2016 <- all_ptt_2016 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2016 <- all_ptt_2016 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2016$cohort <- 2016
+
+
+##ARG 2017
+Ptt81125_raw <- read_csv(here::here('tag data', 'Argentina', '2017', '81125', "81125-Locations.csv"))
+Ptt84498_raw <- read_csv(here::here('tag data', 'Argentina', '2017', '84498', "84498-Locations.csv"))
+Ptt87627_raw <- read_csv(here::here('tag data', 'Argentina', '2017', '87627', "87627-Locations.csv"))
+Ptt87634_raw <- read_csv(here::here('tag data', 'Argentina', '2017', '87634', "87634-Locations.csv"))
+Ptt87637_raw <- read_csv(here::here('tag data', 'Argentina', '2017', '87637', "87637-Locations.csv"))
+Ptt87762_raw <- read_csv(here::here('tag data', 'Argentina', '2017', '87762', "87762-Locations.csv"))
+Ptt87766_raw <- read_csv(here::here('tag data', 'Argentina', '2017', '87766', "87766-Locations.csv"))
+
+all_ptt_2017 <- bind_rows(Ptt81125_raw, Ptt84498_raw, Ptt87627_raw, Ptt87634_raw, 
+                          Ptt87637_raw,Ptt87762_raw,Ptt87766_raw)
+
+
+#Only keep desired columns
+all_ptt_2017 <- all_ptt_2017 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2017 <- all_ptt_2017 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2017$cohort <- 2017
+
+
+
+##ARG 2019
+Ptt87635_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '87635', "87635-Locations.csv"))
+Ptt87777_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '87777', "87777-Locations.csv"))
+Ptt121206_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '121206', "121206-Locations.csv"))
+Ptt194568_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194568', "194568-Locations.csv"))
+Ptt194569_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194569', "194569-Locations.csv"))
+Ptt194570_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194570', "194570-Locations.csv"))
+Ptt194571_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194571', "194571-Locations.csv"))
+Ptt194572_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194572', "194572-Locations.csv"))
+Ptt194573_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194573', "194573-Locations.csv"))
+Ptt194574_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194574', "194574-Locations.csv"))
+Ptt194575_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194575', "194575-Locations.csv"))
+Ptt194576_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194576', "194576-Locations.csv"))
+Ptt194577_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194577', "194577-Locations.csv"))
+Ptt194578_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194578', "194578-Locations.csv"))
+Ptt194579_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194579', "194579-Locations.csv"))
+Ptt194587_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194587', "194587-Locations.csv"))
+Ptt194588_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194588', "194588-Locations.csv"))
+Ptt194590_raw <- read_csv(here::here('tag data', 'Argentina', '2019', '194590', "194590-Locations.csv"))
+
+
+all_ptt_2019 <- bind_rows(Ptt87635_raw, Ptt87777_raw, Ptt121206_raw, Ptt194568_raw, 
+                          Ptt194569_raw, Ptt194570_raw, Ptt194571_raw, Ptt194572_raw,
+                          Ptt194573_raw, Ptt194574_raw, Ptt194575_raw, Ptt194576_raw,
+                          Ptt194577_raw, Ptt194578_raw, Ptt194579_raw, Ptt194587_raw,
+                          Ptt194588_raw, Ptt194590_raw)
+
+
+#Only keep desired columns
+all_ptt_2019 <- all_ptt_2019 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2019 <- all_ptt_2019 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2019$cohort <- 2019
+
+
+
+##ARG 2021
+Ptt197849_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '197849', "197849-Locations.csv"))
+Ptt197850_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '197850', "197850-Locations.csv"))
+Ptt197852_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '197852', "197852-Locations.csv"))
+Ptt197854_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '197854', "197854-Locations.csv"))
+Ptt206787_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '206787', "206787-Locations.csv"))
+Ptt206788_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '206788', "206788-Locations.csv"))
+Ptt206790_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '206790', "206790-Locations.csv"))
+Ptt221421_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '221421', "221421-Locations.csv"))
+Ptt221424_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '221424', "221424-Locations.csv"))
+Ptt222190_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '222190', "222190-Locations.csv"))
+Ptt222193_raw <- read_csv(here::here('tag data', 'Argentina', '2021', '222193', "222193-Locations.csv"))
+
+
+all_ptt_2021 <- bind_rows(Ptt197849_raw, Ptt197850_raw, Ptt197852_raw, Ptt197854_raw, 
+                          Ptt206787_raw, Ptt206788_raw, Ptt206790_raw, Ptt221421_raw,
+                          Ptt221424_raw, Ptt222190_raw, Ptt222193_raw)
+
+
+#Only keep desired columns
+all_ptt_2021 <- all_ptt_2021 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2021 <- all_ptt_2021 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2021$cohort <- 2021
+
+
+
+
+##ARG 2022
+Ptt197855_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '197855', "197855-Locations.csv"))
+Ptt197857_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '197857', "197857-Locations.csv"))
+Ptt197859_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '197859', "197859-Locations.csv"))
+Ptt197863_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '197863', "197863-Locations.csv"))
+Ptt206784_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '206784', "206784-Locations.csv"))
+Ptt208741_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '208741', "208741-Locations.csv"))
+Ptt236901_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '236901', "236901-Locations.csv"))
+Ptt236902_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '236902', "236902-Locations.csv"))
+Ptt236903_raw <- read_csv(here::here('tag data', 'Argentina', '2022', '236903', "236903-Locations.csv"))
+
+
+all_ptt_2022 <- bind_rows(Ptt197855_raw, Ptt197857_raw, Ptt197859_raw, 
+                          Ptt197863_raw, Ptt206784_raw, Ptt208741_raw,
+                          Ptt236901_raw, Ptt236902_raw, Ptt236903_raw)
+
+
+#Only keep desired columns
+all_ptt_2022 <- all_ptt_2022 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2022 <- all_ptt_2022 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2022$cohort <- 2022
+
+
+
+
+raw_argos_df <- rbind(all_ptt_2014,all_ptt_2015,all_ptt_2016,
+                      all_ptt_2017,all_ptt_2019,
+                      all_ptt_2021,all_ptt_2022)
+
+
+#save combined NZ SRW data file - all tags done transmitting
+#write_rds(raw_argos_df,here::here('SSM', 'data', 'SA_ARG_2014-2022_raw_argos_df_20240515.rds'))
+
+
+
