@@ -1113,6 +1113,110 @@ summary(fit_ssm_12h_model_mp_NZ2009_p_v2$g)
 
 
 
+######################################################################################
+######################################################################################
+########################### SA TRACKS  #######################################
+######################################################################################
+######################################################################################
+
+#combine South Africa data into one master file
+#all 2021 and 2022 tags done transmitting. 2023 not done yet
+
+##SA 2021
+Ptt221420_raw <- read_csv(here::here('tag data', 'SA', '2021', 'datapull 20230728', '221420', "221420-Locations.csv"))
+Ptt221422_raw <- read_csv(here::here('tag data', 'SA', '2021', 'datapull 20230728', '221422', "221422-Locations.csv"))
+Ptt221423_raw <- read_csv(here::here('tag data', 'SA', '2021', 'datapull 20230728', '221423', "221423-Locations.csv"))
+Ptt222172_raw <- read_csv(here::here('tag data', 'SA', '2021', 'datapull 20230728', '222172', "222172-Locations.csv"))
+
+
+all_ptt_2021 <- bind_rows(Ptt221420_raw, Ptt221422_raw, Ptt221423_raw, Ptt222172_raw)
+
+#Only keep desired columns
+all_ptt_2021 <- all_ptt_2021 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2021 <- all_ptt_2021 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2021$cohort <- 2021
+
+
+
+##SA 2022
+Ptt222173_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','222173', "222173-Locations.csv"))
+Ptt225990_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','225990', "225990-Locations.csv"))
+Ptt225991_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','225991', "225991-Locations.csv"))
+Ptt225992_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','225992', "225992-Locations.csv"))
+Ptt225993_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','225993', "225993-Locations.csv"))
+Ptt225994_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','225994', "225994-Locations.csv"))
+Ptt236904_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','236904', "236904-Locations.csv"))
+Ptt236905_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','236905', "236905-Locations.csv"))
+Ptt236906_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','236906', "236906-Locations.csv"))
+Ptt236907_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','236907', "236907-Locations.csv"))
+Ptt236908_raw <- read_csv(here::here('tag data', 'SA', '2022', 'datapull 20240515','236908', "236908-Locations.csv"))
+
+all_ptt_2022 <- bind_rows(Ptt222173_raw, Ptt225990_raw, Ptt225991_raw, Ptt225992_raw, Ptt225993_raw,
+                          Ptt225994_raw, Ptt236904_raw, Ptt236905_raw, Ptt236906_raw, Ptt236907_raw, Ptt236908_raw)
+
+
+#Only keep desired columns
+all_ptt_2022 <- all_ptt_2022 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2022 <- all_ptt_2022 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2022$cohort <- 2022
+
+
+
+##SA 2023 - not done transmitting in datapull 20240515 + would need extracting env var for 2024
+Ptt84498_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '84498', "84498-Locations.csv"))
+Ptt87636_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '87636', "87636-Locations.csv"))
+Ptt87762_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '87762', "87762-Locations.csv"))
+Ptt87780_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '87780', "87780-Locations.csv"))
+Ptt171990_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '171990', "171990-Locations.csv"))
+Ptt174061_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '174061', "174061-Locations.csv"))
+Ptt174063_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '174063', "174063-Locations.csv"))
+Ptt174064_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '174064', "174064-Locations.csv"))
+Ptt174316_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '174316', "174316-Locations.csv"))
+Ptt221425_raw <- read_csv(here::here('tag data', 'SA', '2023', 'datapull 20240515', '221425', "221425-Locations.csv"))
+
+
+all_ptt_2023 <- bind_rows(Ptt84498_raw, Ptt87636_raw, Ptt87762_raw, Ptt87780_raw,
+                          Ptt171990_raw, Ptt174061_raw, Ptt174063_raw, Ptt174064_raw,Ptt174316_raw,Ptt221425_raw)
+
+
+
+#Only keep desired columns
+all_ptt_2023 <- all_ptt_2023 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2023 <- all_ptt_2023 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2023$cohort <- 2023
+
+
+
+raw_argos_df <- rbind(all_ptt_2021,all_ptt_2022,all_ptt_2023)
+
+
+#save combined NZ SRW data file - all tags done transmitting
+#write_rds(raw_argos_df,here::here('SSM', 'data', 'SA_SRW_2021_2022_2023_raw_argos_df_20240515.rds'))
+
 
 
 
