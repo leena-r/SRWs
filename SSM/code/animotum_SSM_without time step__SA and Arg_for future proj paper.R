@@ -220,7 +220,7 @@ for (i in ids) {
 ######################################################################################
 
 #load in master data file
-raw_argos_df <- read_rds(here::here('SSM', 'data', 'SA_ARG_2014-2022_raw_argos_df_20240515.rds'))
+raw_argos_df <- read_rds(here::here('SSM', 'data', 'SA_ARG_2014-2023_raw_argos_df_20240515.rds'))
 ## this was created in code script: animotum_SSM_all_NZ_tracks_grouped_12h
 # read in from datapull when all 2021 and 2022 tags had stopped - 2023 tags still going but they can be deleted after SSM
 
@@ -347,11 +347,19 @@ tic()
 fit_ssm_mp_ARG_all_no_timestep <- fit_ssm(ssm_df, vmax=5, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##, map = list(psi = factor(NA))
 toc()
 ##6min to run ARG data
+#when 2023 tags included few warnings
+# Warning messages:
+# 1: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+# 2: Hessian was not positive-definite so some standard errors could not be calculated. 
+# 3: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+# 4: Hessian was not positive-definite so some standard errors could not be calculated. 
+# 5: In sqrt(as.numeric(object$diag.cov.random)) : NaNs produced
+# 6: Hessian was not positive-definite so some standard errors could not be calculated. 
 
 fit_ssm_mp_ARG_all_no_timestep_mp <-  fit_ssm_mp_ARG_all_no_timestep %>% grab(what="fitted")
 ##some NAs for 2 segments in logit_g.se
 
-nrow(fit_ssm_mp_ARG_all_no_timestep_mp) #118518
+nrow(fit_ssm_mp_ARG_all_no_timestep_mp) #142019 with 2023 deployments (that left BG)
 
 ### few outliers left in data
 #236903-1 2 locs 24/10/2022
@@ -369,7 +377,7 @@ hist(fit_ssm_mp_ARG_all_no_timestep_mp$g)
 
 summary(fit_ssm_mp_ARG_all_no_timestep_mp$g)
 #  Min.   1st Qu.   Median   Mean    3rd Qu.    Max. 
-#0.002955 0.429771 0.567607 0.566405 0.714094 0.984704 #these after outliers removed 
+#0.002955 0.424333 0.564139 0.561022 0.709506 0.984704  #these after outliers removed 
 
 
 #write_csv(fit_ssm_mp_ARG_all_no_timestep_mp,here::here('SSM', 'data', 'FINAL_fit_mpm_ARG_no_time_step_SSM_mp_1step__20240515.csv'))
