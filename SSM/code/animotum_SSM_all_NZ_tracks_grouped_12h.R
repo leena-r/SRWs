@@ -1440,14 +1440,59 @@ all_ptt_2022$cohort <- 2022
 
 
 
+##ARG 2023
+Ptt185079_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '185079', "185079-Locations.csv"))
+Ptt185096_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '185096', "185096-Locations.csv"))
+Ptt185102_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '185102', "185102-Locations.csv"))
+Ptt185113_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '185113', "185113-Locations.csv"))
+Ptt237126_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '237126', "237126-Locations.csv"))
+Ptt237127_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '237127', "237127-Locations.csv"))
+Ptt237128_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '237128', "237128-Locations.csv"))
+Ptt237129_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '237129', "237129-Locations.csv"))
+Ptt237130_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '237130', "237130-Locations.csv"))
+Ptt254725_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '254725', "254725-Locations.csv"))
+Ptt254726_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '254726', "254726-Locations.csv"))
+Ptt254728_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '254728', "254728-Locations.csv"))
+Ptt254732_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '254732', "254732-Locations.csv"))
+Ptt254733_raw <- read_csv(here::here('tag data', 'Argentina', '2023','datapull 20240515', '254733', "254733-Locations.csv"))
+
+Ptt185079_raw$DeployID <- as.character(Ptt185079_raw$DeployID )
+Ptt185096_raw$DeployID <- as.character(Ptt185096_raw$DeployID )
+Ptt185102_raw$DeployID <- as.character(Ptt185102_raw$DeployID )
+Ptt237128_raw$DeployID <- as.character(Ptt237128_raw$DeployID )
+Ptt254725_raw$DeployID <- as.character(Ptt254725_raw$DeployID )
+Ptt254726_raw$DeployID <- as.character(Ptt254726_raw$DeployID )
+Ptt254728_raw$DeployID <- as.character(Ptt254728_raw$DeployID )
+
+
+
+all_ptt_2023 <- bind_rows(Ptt185079_raw, Ptt185096_raw, Ptt185102_raw, Ptt185113_raw,  
+                          Ptt237126_raw, Ptt237127_raw, Ptt237128_raw, Ptt237129_raw, 
+                          Ptt237130_raw, Ptt254725_raw, Ptt254726_raw, Ptt254728_raw, 
+                          Ptt254732_raw, Ptt254733_raw)
+
+
+#Only keep desired columns
+all_ptt_2023 <- all_ptt_2023 %>%
+  select(DeployID, Ptt, Instr, Date, Type, Quality, Latitude, Longitude, `Error radius`, `Error Semi-major axis`, `Error Semi-minor axis`, `Error Ellipse orientation`)
+
+
+all_ptt_2023 <- all_ptt_2023 %>%
+  mutate(DateTime_UTC = Date) %>%
+  mutate(DateTime_UTC=parse_date_time(DateTime_UTC, "HMS dby")) %>%
+  select(-Date) %>%
+  mutate(Date = as_date(DateTime_UTC))
+
+all_ptt_2023$cohort <- 2023
+
 
 raw_argos_df <- rbind(all_ptt_2014,all_ptt_2015,all_ptt_2016,
                       all_ptt_2017,all_ptt_2019,
-                      all_ptt_2021,all_ptt_2022)
+                      all_ptt_2021,all_ptt_2022, all_ptt_2023)
 
 
 #save combined NZ SRW data file - all tags done transmitting
-#write_rds(raw_argos_df,here::here('SSM', 'data', 'SA_ARG_2014-2022_raw_argos_df_20240515.rds'))
+#write_rds(raw_argos_df,here::here('SSM', 'data', 'SA_ARG_2014-2023_raw_argos_df_20240515.rds'))
 
 
 
