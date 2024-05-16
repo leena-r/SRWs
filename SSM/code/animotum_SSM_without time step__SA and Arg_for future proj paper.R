@@ -182,33 +182,33 @@ summary(fit_ssm_mp_SA_all_no_timestep_mp$g)
 
 
 
-# require(patchwork)
+ require(patchwork)
 # # calculate & plot residuals
-# tic
-# res.rw <- osar(fit_ssm_mp_SA_all_no_timestep) ##h
-# toc
+ tic
+ res.rw_SA <- osar(fit_ssm_mp_SA_all_no_timestep) ##h
+ toc
 
-####write_rds(res.rw,here::here('SSM', 'data', 'FINAL_fit_SA_no_time_step_SSM_mp_36h_50loc_1step__20240515_RESIDUALS.rds'))
+write_rds(res.rw_SA,here::here('SSM', 'data', 'FINAL_fit_SA_no_time_step_SSM_mp_36h_50loc_1step__20240515_RESIDUALS.rds'))
 
 
-ids <- unique(res.rw$id)
+ids <- unique(res.rw_SA$id)
 
 plot_list = list()
 for (i in ids) {
-  test <- res.rw %>% filter(id == i)
+  test <- res.rw_SA %>% filter(id == i)
   p1 <- (plot(test, type = "ts") | plot(test, type = "qq")) / 
     (plot(test, type = "acf") | plot_spacer())
   plot_list[[i]] = p1
 }
 
 for (i in ids) {
-  file_name = paste("plot_", i, ".tiff", sep="")
+  file_name = paste("SA_plot_", i, ".tiff", sep="")
   tiff(file_name, units="in", width=7, height=5, res=300)
   print(plot_list[[i]])
   dev.off()
 }
 
-pdf("plots.pdf")
+pdf("SA_plots.pdf")
 for (i in ids) {
   print(plot_list[[i]])
 }
@@ -387,31 +387,31 @@ summary(fit_ssm_mp_ARG_all_no_timestep_mp$g)
 
 # require(patchwork)
 # # calculate & plot residuals
-# tic
-# res.rw <- osar(fit_ssm_mp_ARG_all_no_timestep) ##h
-# toc
+ tic
+ res.rw_ARG <- osar(fit_ssm_mp_ARG_all_no_timestep) ##h
+ toc
 
-####write_rds(res.rw,here::here('SSM', 'data', 'FINAL_fit_ARG_no_time_step_SSM_mp_36h_50loc_1step__20240515_RESIDUALS.rds'))
+ write_rds(res.rw_ARG,here::here('SSM', 'data', 'FINAL_fit_ARG_no_time_step_SSM_mp_36h_50loc_1step__20240515_RESIDUALS.rds'))
 
 
-ids <- unique(res.rw$id)
+ids <- unique(res.rw_ARG$id)
 
 plot_list = list()
 for (i in ids) {
-  test <- res.rw %>% filter(id == i)
+  test <- res.rw_ARG %>% filter(id == i)
   p1 <- (plot(test, type = "ts") | plot(test, type = "qq")) / 
     (plot(test, type = "acf") | plot_spacer())
   plot_list[[i]] = p1
 }
 
 for (i in ids) {
-  file_name = paste("plot_", i, ".tiff", sep="")
+  file_name = paste("ARG_plot_", i, ".tiff", sep="")
   tiff(file_name, units="in", width=7, height=5, res=300)
   print(plot_list[[i]])
   dev.off()
 }
 
-pdf("plots.pdf")
+pdf("ARG_plots.pdf")
 for (i in ids) {
   print(plot_list[[i]])
 }
