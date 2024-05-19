@@ -152,8 +152,9 @@ ssm_df <- ssm_df %>%
 ##but after added duplicate removal and speed filtering steps then SSM/MP converges
 tic()
 fit_ssm_mp_SA_all_no_timestep <- fit_ssm(ssm_df, vmax=5, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##, map = list(psi = factor(NA))
+View(fit_ssm_mp_SA_all_no_timestep)
 toc()
-##3min to run SA data
+##3min to run SA data -- all converged
 
 fit_ssm_mp_SA_all_no_timestep_mp <-  fit_ssm_mp_SA_all_no_timestep %>% grab(what="fitted")
 ##no NAs for logit_g.se
@@ -182,36 +183,36 @@ summary(fit_ssm_mp_SA_all_no_timestep_mp$g)
 
 
 
- require(patchwork)
-# # calculate & plot residuals
- tic
- res.rw_SA <- osar(fit_ssm_mp_SA_all_no_timestep) ##h
- toc
-
-write_rds(res.rw_SA,here::here('SSM', 'data', 'FINAL_fit_SA_no_time_step_SSM_mp_36h_50loc_1step__20240515_RESIDUALS.rds'))
-
-
-ids <- unique(res.rw_SA$id)
-
-plot_list = list()
-for (i in ids) {
-  test <- res.rw_SA %>% filter(id == i)
-  p1 <- (plot(test, type = "ts") | plot(test, type = "qq")) / 
-    (plot(test, type = "acf") | plot_spacer())
-  plot_list[[i]] = p1
-}
-
-for (i in ids) {
-  file_name = paste("SA_plot_", i, ".tiff", sep="")
-  tiff(file_name, units="in", width=7, height=5, res=300)
-  print(plot_list[[i]])
-  dev.off()
-}
-
-pdf("SA_plots.pdf")
-for (i in ids) {
-  print(plot_list[[i]])
-}
+#  require(patchwork)
+# # # calculate & plot residuals
+#  tic
+#  res.rw_SA <- osar(fit_ssm_mp_SA_all_no_timestep) ##h
+#  toc
+# 
+# write_rds(res.rw_SA,here::here('SSM', 'data', 'FINAL_fit_SA_no_time_step_SSM_mp_36h_50loc_1step__20240515_RESIDUALS.rds'))
+# 
+# 
+# ids <- unique(res.rw_SA$id)
+# 
+# plot_list = list()
+# for (i in ids) {
+#   test <- res.rw_SA %>% filter(id == i)
+#   p1 <- (plot(test, type = "ts") | plot(test, type = "qq")) / 
+#     (plot(test, type = "acf") | plot_spacer())
+#   plot_list[[i]] = p1
+# }
+# 
+# for (i in ids) {
+#   file_name = paste("SA_plot_", i, ".tiff", sep="")
+#   tiff(file_name, units="in", width=7, height=5, res=300)
+#   print(plot_list[[i]])
+#   dev.off()
+# }
+# 
+# pdf("SA_plots.pdf")
+# for (i in ids) {
+#   print(plot_list[[i]])
+# }
 
 
 
@@ -345,6 +346,7 @@ ssm_df <- ssm_df %>%
 ##but after added duplicate removal and speed filtering steps then SSM/MP converges
 tic()
 fit_ssm_mp_ARG_all_no_timestep <- fit_ssm(ssm_df, vmax=5, model="mp", time.step=NA, control = ssm_control(verbose=0), map = list(psi = factor(NA))) ##, map = list(psi = factor(NA))
+View(fit_ssm_mp_ARG_all_no_timestep)
 toc()
 ##6min to run ARG data
 #when 2023 tags included few warnings
@@ -387,33 +389,33 @@ summary(fit_ssm_mp_ARG_all_no_timestep_mp$g)
 
 # require(patchwork)
 # # calculate & plot residuals
- tic
- res.rw_ARG <- osar(fit_ssm_mp_ARG_all_no_timestep) ##h
- toc
-
- write_rds(res.rw_ARG,here::here('SSM', 'data', 'FINAL_fit_ARG_no_time_step_SSM_mp_36h_50loc_1step__20240515_RESIDUALS.rds'))
-
-
-ids <- unique(res.rw_ARG$id)
-
-plot_list = list()
-for (i in ids) {
-  test <- res.rw_ARG %>% filter(id == i)
-  p1 <- (plot(test, type = "ts") | plot(test, type = "qq")) / 
-    (plot(test, type = "acf") | plot_spacer())
-  plot_list[[i]] = p1
-}
-
-for (i in ids) {
-  file_name = paste("ARG_plot_", i, ".tiff", sep="")
-  tiff(file_name, units="in", width=7, height=5, res=300)
-  print(plot_list[[i]])
-  dev.off()
-}
-
-pdf("ARG_plots.pdf")
-for (i in ids) {
-  print(plot_list[[i]])
-}
+#  tic
+#  res.rw_ARG <- osar(fit_ssm_mp_ARG_all_no_timestep) ##h
+#  toc
+# 
+#  write_rds(res.rw_ARG,here::here('SSM', 'data', 'FINAL_fit_ARG_no_time_step_SSM_mp_36h_50loc_1step__20240515_RESIDUALS.rds'))
+# 
+# 
+# ids <- unique(res.rw_ARG$id)
+# 
+# plot_list = list()
+# for (i in ids) {
+#   test <- res.rw_ARG %>% filter(id == i)
+#   p1 <- (plot(test, type = "ts") | plot(test, type = "qq")) / 
+#     (plot(test, type = "acf") | plot_spacer())
+#   plot_list[[i]] = p1
+# }
+# 
+# for (i in ids) {
+#   file_name = paste("ARG_plot_", i, ".tiff", sep="")
+#   tiff(file_name, units="in", width=7, height=5, res=300)
+#   print(plot_list[[i]])
+#   dev.off()
+# }
+# 
+# pdf("ARG_plots.pdf")
+# for (i in ids) {
+#   print(plot_list[[i]])
+# }
 
 
