@@ -77,12 +77,16 @@ OZ_2023_ssm <- OZ_2023_ssm %>% mutate(
 ### join 2022 and 2023
 OZ_2022_2023_ssm <- rbind(OZ_2022_ssm,OZ_2023_ssm)
 
+
+
+
 ## make whale ID levels so that 2022 data are first and then 2023 data
 
 OZ_2022_2023_ssm <- OZ_2022_2023_ssm %>% mutate(
   whale_ID = factor(whale_ID, levels = c("Nebinyan", "Yilberup", "Augusta whale 1", "Augusta whale 2",
                                "Wandinyil-mirnong" , "Busselton Whale 1", "Moolyup", "Tyiurtj", "Yookily", 
                                "Twertup", "Naaranyirup", "Norngerin", "Merningup"))) 
+
 
 
 # Plot study site 
