@@ -14,6 +14,8 @@ library(here)
 library(lubridate)
 library(gifski)
 library(png)
+library(dplyr)
+library(RColorBrewer) 
 
 world_map <- map_data("world") %>%  
   mutate(long = ifelse(long <0, 360-long*-1, long))
@@ -176,7 +178,7 @@ animate(path.animate.plot,
 # Read the csv file to animate tracks from
 # use SSM version as they are tidier 
 #file has been edited a bit, add column for PTT
-NZ_2021_ssm <- read_csv(here::here('track animation', "NZ_2021_ssm_mp_normalised in each track_20230713.csv"))
+NZ_2021_ssm <- read_csv(here::here('track animation', "data", "NZ_2021_ssm_mp_normalised in each track_20230713.csv"))
 NZ_2021_ssm <- as.data.frame(NZ_2021_ssm)
 
 NZ_2021_ssm$PTT <- as.factor(NZ_2021_ssm$PTT)
@@ -491,6 +493,260 @@ animate(path.animate.plot,
                                  prefix = "plot2_"))
 #if gifski is loaded then automatically renders a gif not pngs
 #then try to use https://clideo.com/editor/video-maker to join pngs into mp4
+
+
+
+
+#############################################################################################
+#############################################################################################
+
+#join all NZ data into one animation
+
+all_NZ_ssm <- read_csv(here::here('track animation','data', "ssm_mpm_all_NZ_SRW_20231218.csv"))
+
+all_NZ_ssm <- all_NZ_ssm %>%
+  mutate(date = dmy(date), 
+  date_num = as.numeric(date)) %>%  # numeric for animation
+  arrange(date)
+
+all_NZ_ssm <- all_NZ_ssm %>% mutate(
+  whale_ID = case_when(
+    PTT == 203571 ~ "Rima",
+    PTT == 203572 ~ "Toru",
+    PTT == 203573 ~ "Rua",
+    PTT == 203574 ~ "Wiremu (Bill)",
+    PTT == 203575 ~ "Tahi",
+    PTT == 205015 ~ "Whā",
+    PTT == 46633 ~ "Tekau mā ono",
+    PTT == 46635 ~ "Tekau mā whā",
+    PTT == 46950 ~ "Tekau mā rua",
+    PTT == 46955 ~ "Tekau",
+    PTT == 212499 ~ "Tekau mā toru",
+    PTT == 212500 ~ "Tekau mā rima",
+    PTT == 215258 ~ "Waru",
+    PTT == 215259 ~ "Ono",
+    PTT == 215261 ~ "Iwa",
+    PTT == 215262 ~ "Whitu",
+    PTT == 215263 ~ "Tekau mā tahi",
+    PTT == 197853 ~ "Rua tekau mā rua",
+    PTT == 208742 ~ "Rua tekau mā whā",
+    PTT == 235399 ~ "Rua tekau mā toru",
+    PTT == 235400 ~ "Tekau mā whitu (Muzza)",
+    PTT == 235401 ~ "Rua tekau",
+    PTT == 235402 ~ "Tekau mā iwa",
+    PTT == 235403 ~ "Tekau mā waru",
+    PTT == 235404 ~ "Rua tekau mā tahi"))
+
+
+## make whale ID levels so that 2020 data are first and then 2021 and 2022 data
+all_NZ_ssm <- all_NZ_ssm %>% mutate(
+  whale_ID = factor(whale_ID, levels = c("Tahi", "Rua", "Toru", "Whā", "Rima", "Wiremu (Bill)",
+                                         "Ono", "Whitu", "Waru", "Iwa", "Tekau", "Tekau mā tahi", "Tekau mā rua", "Tekau mā toru", "Tekau mā whā", "Tekau mā rima", "Tekau mā ono",
+                                         "Tekau mā whitu (Muzza)", "Tekau mā waru","Tekau mā iwa", "Rua tekau", "Rua tekau mā tahi", "Rua tekau mā rua", "Rua tekau mā toru", "Rua tekau mā whā"))) 
+
+
+all_NZ_ssm <- all_NZ_ssm %>%  
+  mutate(lon = ifelse(lon <0, 360-lon*-1, lon))
+
+
+# Static basemap layer
+# world_map should already be loaded from e.g. map_data("world")
+world_map <- map_data("world")
+
+basemap <- geom_polygon(
+  data = world_map,
+  aes(x = long, y = lat, group = group),
+  fill = "black"
+)
+
+
+# Define a vector of 25 bright, distinct colors
+bright_colors <- c(
+  "red", "blue", "green", "orange", "purple",
+  "cyan", "magenta", "yellow", "black", "brown",
+  "darkgreen", "darkblue", "darkred", "gold", "pink",
+  "limegreen", "navy", "violet", "coral", "turquoise",
+  "darkorange", "deeppink", "darkmagenta", "royalblue", "sienna"
+)
+
+# Make sure you have 25 colors
+length(bright_colors)  # should be 25
+
+# Shuffle colors to avoid similar ones next to each other
+set.seed(42)  # for reproducibility
+pal_shuffled <- sample(bright_colors)
+
+
+###static map
+legend_plot <- ggplot(all_NZ_ssm, aes(x = lon, y = lat, colour = whale_ID)) +
+  geom_point() +
+  scale_colour_manual(values = pal_shuffled) +   # Use shuffled colors
+  guides(
+    colour = guide_legend(
+      override.aes = list(size = 3)#,
+      #nrow = 3,
+      #byrow = TRUE
+    )
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 12)
+  )
+legend_plot
+
+
+# ggsave(
+#   filename = "all_NZ_tracks_static_for_legend.png",
+#   plot = legend_plot,
+#   width = 10, height = 6, dpi = 300
+# )
+
+
+
+# Assign colors manually in ggplot
+p <- ggplot() +
+  basemap +
+  geom_path(data = all_NZ_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), linewidth = 1.1) +
+  geom_point(data = all_NZ_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), size = 2) +
+  coord_fixed(xlim = c(80, 200), ylim = c(-70, -30)) +
+  scale_colour_manual(values = pal_shuffled) +   # Use shuffled colors
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 25),
+    legend.text = element_text(size = 25),
+    axis.title = element_text(size = 20),
+    plot.title = element_text(size = 30)
+  ) +
+  labs(
+    x = "Longitude",
+    y = "Latitude",
+    title = "Date: {frame_along}",
+    colour = "Whale ID"
+  ) +
+  transition_reveal(date)
+
+
+# Render animation
+anim <- animate(
+  p,
+  height = 800, width = 1200,
+  fps = 5,
+  nframes = length(unique(all_NZ_ssm$date)),
+  renderer = gifski_renderer()
+)
+
+anim_save("whale_tracks_v17.gif", animation = anim)
+
+##############################################################################3
+
+## all ox tracks joined, same animation style as the nZ animation
+
+#OZ_2022_2023_ssm  <- OZ_2022_2023_ssm  %>%
+ # arrange(date)
+
+# Static basemap layer
+# world_map should already be loaded from e.g. map_data("world")
+world_map <- map_data("world")
+
+basemap <- geom_polygon(
+  data = world_map,
+  aes(x = long, y = lat, group = group),
+  fill = "black"
+)
+
+
+# Define a vector of 13 bright, distinct colors
+bright_colors <- c(
+  "red", "blue", "green", "orange", "purple",
+  "cyan", "magenta", "yellow", "black", "brown",
+  "darkgreen", "darkblue", "darkred"
+)
+
+# Make sure you have 13 colors
+length(bright_colors)  # should be 13
+
+# Shuffle colors to avoid similar ones next to each other
+set.seed(42)  # for reproducibility
+pal_shuffled <- sample(bright_colors)
+
+
+###static map
+legend_plot_OZ <- ggplot(OZ_2022_2023_ssm, aes(x = lon, y = lat, colour = whale_ID)) +
+  geom_point() +
+  scale_colour_manual(values = pal_shuffled) +   # Use shuffled colors
+  guides(
+    colour = guide_legend(
+      override.aes = list(size = 3)#,
+      #nrow = 3,
+      #byrow = TRUE
+    )
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 12)
+  )
+legend_plot_OZ
+
+
+# ggsave(
+#   filename = "all_OZ_tracks_static_for_legend.png",
+#   plot = legend_plot_OZ,
+#   width = 10, height = 6, dpi = 300
+# )
+
+
+
+# Assign colors manually in ggplot
+p <- ggplot() +
+  basemap +
+  geom_path(data = OZ_2022_2023_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), linewidth = 1.1) +
+  geom_point(data = OZ_2022_2023_ssm, aes(x = lon, y = lat, colour = whale_ID, group = whale_ID), size = 2) +
+  coord_fixed(xlim = c(40,150), ylim = c(-70, -30)) +
+  scale_colour_manual(values = pal_shuffled) +   # Use shuffled colors
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 25),
+    legend.text = element_text(size = 25),
+    axis.title = element_text(size = 20),
+    plot.title = element_text(size = 30)
+  ) +
+  labs(
+    x = "Longitude",
+    y = "Latitude",
+    title = "Date: {frame_along}",
+    colour = "Whale ID"
+  ) +
+  transition_reveal(date)
+
+
+# Render animation
+anim <- animate(
+  p,
+  height = 800, width = 1200,
+  fps = 5,
+  nframes = length(unique(OZ_2022_2023_ssm$date)),
+  renderer = gifski_renderer()
+)
+
+anim_save("whale_tracks_oZ_v1.gif", animation = anim)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
