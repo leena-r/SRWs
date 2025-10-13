@@ -6,9 +6,7 @@
 
 tag data/
 
-SSM/mapping
-SSM/data
-SSM/writing
+SSM/
 
 track animation/animations
 track animation/data
